@@ -40,8 +40,8 @@ while True:
     u_v = cv2.getTrackbarPos("UV", "HSV transmission")'''
 
     # Membuat batasan nilai HSV
-    lower_bound = np.array([42, 53, 119])
-    upper_bound = np.array([94, 255, 255])
+    lower_bound = np.array([27, 74, 97])
+    upper_bound = np.array([235, 255, 255])
 
     # Membuat mask untuk deteksi warna
     mask = cv2.inRange(hsv_frame, lower_bound, upper_bound)

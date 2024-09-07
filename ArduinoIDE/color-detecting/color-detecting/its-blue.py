@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # Ganti alamat IP di bawah ini sesuai dengan yang ditampilkan di Serial Monitor
-url = 'http://192.168.2.201:81/stream'  # Pastikan Anda menggunakan alamat URL streaming yang benar
+url = 'http://192.168.3.201:81/stream'  # Pastikan Anda menggunakan alamat URL streaming yang benar
 
 # Membuka koneksi ke stream video
 cap = cv2.VideoCapture(url)
@@ -40,8 +40,8 @@ while True:
     u_v = cv2.getTrackbarPos("UV", "HSV transmission")'''
 
     # Membuat batasan nilai HSV
-    lower_bound = np.array([52, 0, 0])
-    upper_bound = np.array([111, 255, 255])
+    lower_bound = np.array([89, 119, 66])
+    upper_bound = np.array([255, 255, 255])
 
     # Membuat mask untuk deteksi warna
     mask = cv2.inRange(hsv_frame, lower_bound, upper_bound)
