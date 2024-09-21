@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+import skfuzzy as fuzz
+from skfuzzy import control as ctrl
 
 # Nilai HSV
 hsv_colors = {
@@ -11,11 +13,35 @@ hsv_colors = {
     'Red': ([0, 0, 180], [197, 255, 255])
 }
 
-# Kamera laptop
+# Inisialisasi kamera laptop
 cap = cv2.VideoCapture(0)
 
 # Kernel untuk morfologi
 kernel = np.ones((5,5), np.uint8)
+
+# Frame dimension
+frame_width = cap.get(cv2.CAP_PROP_FRAME_WIDTH) // 2
+
+# Fuzzy control system
+error = ctrl.Antecedent(np.arange(-frame_width, frame_width + 1, 1), 'error')
+velocity = ctrl.Consequent(np.arange(-1, 1.1, 0.1), 'velocity')
+
+# Membership functions
+error['left'] = fuzz.trimf(error.universe, [-frame_width, -frame_width, 0])
+error['center'] = fuzz.trimf(error.universe, [-frame_width/2, 0, frame_width/2])
+error['right'] = fuzz.trimf(error.universe, [0, frame_width, frame_width])
+
+velocity['negative'] = fuzz.trimf(velocity.universe, [-1, -1, 0])
+velocity['zero'] = fuzz.trimf(velocity.universe, [-0.5, 0, 0.5])
+velocity['positive'] = fuzz.trimf(velocity.universe, [0, 1, 1])
+
+# Fuzzy rules
+rule1 = ctrl.Rule(error['left'], velocity['positive'])
+rule2 = ctrl.Rule(error['center'], velocity['zero'])
+rule3 = ctrl.Rule(error['right'], velocity['negative'])
+
+velocity_control = ctrl.ControlSystem([rule1, rule2, rule3])
+velocity_simulation = ctrl.ControlSystemSimulation(velocity_control)
 
 while True:
     ret, frame = cap.read()
@@ -36,6 +62,7 @@ while True:
     
     cube_detected = False
     cube_color = None
+    cube_position_x = None
 
     # Deteksi kubus berdasarkan kontur
     for contour in contours:
@@ -51,6 +78,7 @@ while True:
                 # Jika aspek rasio mendekati 1, tandai sebagai kubus
                 if 0.9 <= aspect_ratio <= 1.1:
                     cube_detected = True
+                    cube_position_x = x + w / 2 - frame_width
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 3)
 
                     # Deteksi warna di dalam area kotak yang terdeteksi
@@ -75,7 +103,14 @@ while True:
 
     # Jika kubus dan warnanya terdeteksi, tampilkan teks deteksi
     if cube_detected and cube_color:
-        cv2.putText(frame, f"{cube_color} Cube Detected", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        print(f"Detected {cube_color} Cube at position: {cube_position_x}")
+        cv2.putText(frame, f"{cube_color} Cube Detected at position: {cube_position_x}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+        # Fuzzy logic to determine the movement
+        velocity_simulation.input['error'] = cube_position_x
+        velocity_simulation.compute()
+        movement_speed = velocity_simulation.output['velocity']
+        print(f"Movement Speed: {movement_speed}")
 
     # Menampilkan frame dengan deteksi warna dan kubus
     cv2.imshow("Frame", frame)
