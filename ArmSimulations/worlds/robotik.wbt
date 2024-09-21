@@ -1,0 +1,24 @@
+#VRML_SIM R2022b utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/robots/unimation/puma/protos/Puma560.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation 0.09275778611531114 0.013479174184318318 -0.9955974613157141 2.854203881968834
+  position 4.702282791572787 1.2222089771188138 1.5327173340781899
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 3 3
+}
+Puma560 {
+  name "PUMA 560(1)"
+  controller "keyboard_control"
+}
