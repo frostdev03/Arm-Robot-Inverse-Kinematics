@@ -36,8 +36,8 @@
 // ===========================
 // Enter your WiFi credentials
 // ===========================
-const char *ssid = "Kipas Angin";
-const char *password = "11223344";
+const char *ssid = "RM.TERAPI";
+const char *password = "12345678";
 
 void startCameraServer();
 void setupLedFlash(int pin);
@@ -131,6 +131,7 @@ void setup() {
 // Setup LED FLash if LED pin is defined in camera_pins.h
 #if defined(LED_GPIO_NUM)
   setupLedFlash(LED_GPIO_NUM);
+
 #endif
 
   WiFi.begin(ssid, password);
