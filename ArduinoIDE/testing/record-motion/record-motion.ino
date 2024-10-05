@@ -148,6 +148,20 @@ void loop() {
         Serial.println(servo3_pos);
         break;
 
+      case '3':  // Move servo 3 (middle arm)
+        servo3_pos = min(servo3_pos - 20, 180);
+        moveAllServos();
+        Serial.print("Servo 3 Posi2tion: ");
+        Serial.println(servo3_pos);
+        break;
+
+      case '0':
+        servo3_pos = 0;
+        moveAllServos();
+        Serial.print("Servo 3 Posi2tion: ");
+        Serial.println(servo3_pos);
+        break;
+
       // Add more servo controls as needed
 
       default:
@@ -159,7 +173,7 @@ void loop() {
   // Record motion while recording is active
   if (isRecording) {
     recordPosition();
-    delay(500);  // Add a delay to record at intervals
+    delay(100);  // Add a delay to record at intervals
   }
 
   // Play recorded motion if play is active
