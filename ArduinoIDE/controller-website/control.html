@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Arm Controller</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Robot Arm Controller</h1>
+        <div class="sliders">
+            <div class="slider-container">
+                <label for="slider1">Servo 1</label>
+                <input type="range" id="slider1" min="0" max="180" value="90">
+            </div>
+            
+            <div class="slider-container">
+                <label for="slider2">Servo 2</label>
+                <input type="range" id="slider2" min="0" max="180" value="90">
+            </div>
+
+            <div class="slider-container">
+                <label for="slider3">Servo 3</label>
+                <input type="range" id="slider3" min="0" max="180" value="90">
+            </div>
+
+            <div class="slider-container">
+                <label for="slider4">Servo 4</label>
+                <input type="range" id="slider4" min="0" max="180" value="90">
+            </div>
+
+            <div class="slider-container">
+                <label for="slider5">Servo 5</label>
+                <input type="range" id="slider5" min="0" max="180" value="90">
+            </div>
+
+            <div class="slider-container">
+                <label for="slider6">Servo 6</label>
+                <input type="range" id="slider6" min="0" max="180" value="90">
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button id="recordButton" onclick="toggleRecord()">Record</button>
+            <span id="timer">00:00</span>
+            <button id="playButton" onclick="togglePlay()">Play</button>
+        </div>
+    </div>
+
+    <script src="control.js"></script>
+</body>
+</html>
