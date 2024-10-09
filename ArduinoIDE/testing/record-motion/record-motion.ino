@@ -2,7 +2,7 @@
 
 // Define servo pins
 #define SERVO1_PIN 3  // Servo 1 and 2 (bottom arm, above base)
-#define SERVO2_PIN 13  // Same as SERVO1_PIN for combined movement
+#define SERVO2_PIN 10  // Same as SERVO1_PIN for combined movement
 #define SERVO3_PIN 9  // Middle arm
 #define SERVO4_PIN 14  // Lower neck
 #define SERVO5_PIN 26  // Neck gripper (special range)
@@ -83,7 +83,7 @@ void recordPosition() {
 }
 
 void playRecordedMotion() {
-  if (millis() - lastPlayTime > 500) {  // Play motion every 500 ms
+  if (millis() - lastPlayTime > 0) {  // Play motion every 500 ms
     if (playIndex < currentStep) {
       servo1.write(recordedPositions1[playIndex]);
       servo2.write(recordedPositions2[playIndex]);
@@ -133,47 +133,56 @@ void loop() {
         Serial.println("Playing stopped");
         break;
 
-      case '1':  // Move servo 1 and 2 together
-        servo1_pos = min(servo1_pos + 20, 180);
-        servo2_pos = min(servo2_pos + 20, 180);
-        moveAllServos();
-        Serial.print("Servo 1 & 2 Position: ");
-        Serial.println(servo1_pos);
-        break;
-
       case '2':  // Move servo 3 (middle arm)
-        servo3_pos = min(servo3_pos + 20, 180);
+        servo3_pos = min(servo3_pos + 20, 360);
         moveAllServos();
         Serial.print("Servo 3 Posi2tion: ");
         Serial.println(servo3_pos);
         break;
 
       case '3':  // Move servo 3 (middle arm)
-        servo3_pos = min(servo3_pos - 20, 180);
+        servo3_pos = min(servo3_pos - 20, 360);
         moveAllServos();
         Serial.print("Servo 3 Posi2tion: ");
         Serial.println(servo3_pos);
+        break;
+
+      case '4':  // Move servo 1 and 2 together
+        servo2_pos = min(servo2_pos + 20, 180);
+        moveAllServos();
+        Serial.print("Servo 1 Position: ");
+        Serial.println(servo1_pos);
+        break;
+
+      case '5':  // Move servo 1 and 2 together
+        servo2_pos = min(servo2_pos - 20, 180);
+        moveAllServos();
+        Serial.print("Servo 1 Position: ");
+        Serial.println(servo1_pos);
         break;
 
       case '0':
         servo3_pos = 0;
+        servo2_pos = 0;
         moveAllServos();
         Serial.print("Servo 3 Posi2tion: ");
         Serial.println(servo3_pos);
+        Serial.print("Servo 2 Posi2tion: ");
+        Serial.println(servo2_pos);
         break;
 
       // Add more servo controls as needed
 
-      default:
-        Serial.println("Invalid input!");
-        break;
+      // default:
+      //   Serial.println("Invalid input!");
+      //   break;
     }
   }
 
   // Record motion while recording is active
   if (isRecording) {
     recordPosition();
-    delay(100);  // Add a delay to record at intervals
+    // delay(100);  // Add a delay to record at intervals
   }
 
   // Play recorded motion if play is active
