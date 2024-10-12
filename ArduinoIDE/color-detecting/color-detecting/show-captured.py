@@ -1,7 +1,7 @@
 import cv2
 
 # Ganti alamat IP di bawah ini sesuai dengan yang ditampilkan di Serial Monitor
-url = 'http://192.168.9.201:81/stream'  # Pastikan Anda menggunakan alamat URL streaming yang benar
+url = 'http://192.168.212.147:81/stream'  # Pastikan Anda menggunakan alamat URL streaming yang benar
 
 # Membuka koneksi ke stream video
 cap = cv2.VideoCapture(url)
