@@ -1,79 +1,97 @@
-#include <WiFi.h>
-#include <ESPAsyncWebServer.h>
+/*
+  -----------------------------
+  ESPDASH Lite - Interactive Example
+  -----------------------------
+
+  Skill Level: Intermediate
+
+  In this example we will be creating a interactive dashboard which consists 
+  of a button and a slider.
+
+  Github: https://github.com/ayushsharma82/ESP-DASH
+  WiKi: https://docs.espdash.pro
+
+  Works with both ESP8266 & ESP32
+
+  -------------------------------
+
+  Upgrade to ESP-DASH Pro: https://espdash.pro
+
+*/
+
+#include <Arduino.h>
+#if defined(ESP8266)
+  /* ESP8266 Dependencies */
+  #include <ESP8266WiFi.h>
+  #include <ESPAsyncTCP.h>
+  #include <ESPAsyncWebServer.h>
+#elif defined(ESP32)
+  /* ESP32 Dependencies */
+  #include <WiFi.h>
+  #include <AsyncTCP.h>
+  #include <ESPAsyncWebServer.h>
+#endif
 #include <ESPDash.h>
-#include <ESP32Servo.h>
 
-// Define Wi-Fi credentials
-const char* ssid = "ceragem";       // Ganti dengan nama Wi-Fi kamu
-const char* password = "batugiok";  // Ganti dengan password Wi-Fi kamu
 
-// Initialize the server and dashboard
+/* Your WiFi Credentials */
+const char* ssid = "ceragem"; // SSID
+const char* password = "batugiok"; // Password
+
+/* Start Webserver */
 AsyncWebServer server(80);
-ESPDash dashboard(&server);
 
-// Define servos
-Servo servo1;  // Servo untuk Pin 23
-Servo servo2;  // Servo untuk Pin 22
+/* Attach ESP-DASH to AsyncWebServer */
+ESPDash dashboard(&server); 
 
-// Define the pins for the servos
-#define SERVO1_PIN 23
-#define SERVO2_PIN 22
+/* 
+  Button Card
+  Format - (Dashboard Instance, Card Type, Card Name)
+*/
+Card button(&dashboard, BUTTON_CARD, "Test Button");
 
-// **Declare Card instead of Slider**
-Card* servo1Card;
-Card* servo2Card;
+/* 
+  Slider Card
+  Format - (Dashboard Instance, Card Type, Card Name, Card Symbol(optional), int min, int max)
+*/
+Card slider(&dashboard, SLIDER_CARD, "Test Slider", "", 0, 255);
 
-// Function to initialize Wi-Fi
-void initWiFi() {
-  WiFi.begin(ssid, password);
-  Serial.print("Connecting to Wi-Fi");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.print(".");
-  }
-  Serial.println();
-  Serial.print("Connected! IP Address: ");
-  Serial.println(WiFi.localIP());
-}
 
 void setup() {
-  // Start serial communication
   Serial.begin(115200);
 
-  // Attach servos to respective pins
-  servo1.attach(SERVO1_PIN);
-  servo2.attach(SERVO2_PIN);
+  /* Connect WiFi */
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  if (WiFi.waitForConnectResult() != WL_CONNECTED) {
+      Serial.printf("WiFi Failed!\n");
+      return;
+  }
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.localIP());
 
-  // Initialize Wi-Fi
-  initWiFi();
-
-  // **Create card widgets**
-  // Replace the Card instantiation with the correct arguments
-  servo1Card = new Card(&dashboard, 1, "Servo 1 Position", "°", 0, 180, 1);
-  servo2Card = new Card(&dashboard, 1, "Servo 2 Position", "°", 0, 180, 1);
-
-  // Add the cards to the dashboard
-  dashboard.addCard(servo1Card);
-  dashboard.addCard(servo2Card);
-
-
-  // Set card callback functions to update servos when slider values change
-  servo1Card->attach([&](int value) {
-    servo1.write(value);
-    Serial.print("Servo 1 position: ");
-    Serial.println(value);
+  /* Attach Button Callback */
+  button.attachCallback([&](int value){
+    /* Print our new button value received from dashboard */
+    Serial.println("Button Triggered: "+String((value == 1)?"true":"false"));
+    /* Make sure we update our button's value and send update to dashboard */
+    button.update(value);
+    dashboard.sendUpdates();
   });
 
-  servo2Card->attach([&](int value) {
-    servo2.write(value);
-    Serial.print("Servo 2 position: ");
-    Serial.println(value);
+  /* Attach Slider Callback */
+  slider.attachCallback([&](int value){
+    /* Print our new slider value received from dashboard */
+    Serial.println("Slider Triggered: "+String(value));
+    /* Make sure we update our slider's value and send update to dashboard */
+    slider.update(value);
+    dashboard.sendUpdates();
   });
 
-  // Start the server
+  /* Start AsyncWebServer */
   server.begin();
 }
 
 void loop() {
-  // No code needed in the loop
+  /* Nothing so far */
 }
