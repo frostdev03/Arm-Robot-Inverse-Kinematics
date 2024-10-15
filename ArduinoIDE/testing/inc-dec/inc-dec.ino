@@ -1,4 +1,4 @@
-#include <Servo.h>
+#include <ESP32Servo.h>
 
 //Define servo pins
 #define SERVO1_PIN 3  // Servo 1 and 2 (bottom arm, above base)
