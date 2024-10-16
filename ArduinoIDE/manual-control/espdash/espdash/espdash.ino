@@ -28,7 +28,7 @@ Servo servo1, servo2, servo3, servo4, servo5, servo6;
 int servo1_pos = 0, servo2_pos = 0, servo3_pos = 0, servo4_pos = 0, servo5_pos = 0, servo6_pos = 0;
 
 // Recording parameters
-const int MAX_MOTION_STEPS = 500;  
+const int MAX_MOTION_STEPS = 500;
 int recordedPositions1[MAX_MOTION_STEPS], recordedPositions2[MAX_MOTION_STEPS], recordedPositions3[MAX_MOTION_STEPS];
 int recordedPositions4[MAX_MOTION_STEPS], recordedPositions5[MAX_MOTION_STEPS], recordedPositions6[MAX_MOTION_STEPS];
 
@@ -37,7 +37,7 @@ int currentStep = 0, playIndex = 0;
 unsigned long lastPlayTime = 0;
 
 /* WiFi Credentials */
-const char* ssid = "meja makan";       
+const char* ssid = "meja makan";
 const char* password = "satuduatiga";
 
 /* Start Webserver */
@@ -54,20 +54,24 @@ Card sliderUpperArm(&dashboard, SLIDER_CARD, "Upper Arm", "", 0, 180);
 Card sliderNeckGripper(&dashboard, SLIDER_CARD, "Neck Gripper", "", 0, 360);
 Card sliderGripper(&dashboard, SLIDER_CARD, "Gripper", "", 0, 180);
 
-// Buttons for recording and playing actions (with reduced sizes)
-// Card buttonRecord(&dashboard, BUTTON_CARD, "Record", "", false, true, 0, 1);
-// Card buttonStopRecord(&dashboard, BUTTON_CARD, "Stop Record", "", false, true, 0, 1);
-// Card buttonPlay(&dashboard, BUTTON_CARD, "Play Recorded", "", false, true, 0, 1);
-// Card buttonStopPlay(&dashboard, BUTTON_CARD, "Stop Playing", "", false, true, 0, 1);
-
 // Buttons for recording and playing actions
 Card buttonRecord(&dashboard, BUTTON_CARD, "Record");
 Card buttonStopRecord(&dashboard, BUTTON_CARD, "Stop Record");
 Card buttonPlay(&dashboard, BUTTON_CARD, "Play Recorded");
 Card buttonStopPlay(&dashboard, BUTTON_CARD, "Stop Playing");
 
+// Button for toggling the built-in LED
+Card buttonToggleLED(&dashboard, BUTTON_CARD, "LED Toggle");
+
+// Variable to track LED state
+bool ledState = false;
+
 void setup() {
   Serial.begin(115200);
+
+  // Initialize the LED pin (built-in LED)
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);  // Ensure the LED is off initially
 
   // Attach servos to pins
   servo1.attach(SERVO1_PIN);
@@ -127,6 +131,15 @@ void setup() {
     dashboard.sendUpdates();
   });
 
+  sliderGripper.attachCallback([&](int value) {
+    servo4_pos = value;
+    servo5_pos = value;
+    moveAllServos();
+    sliderGripper.update(value);
+    sliderUpperArm.update(value);
+    dashboard.sendUpdates();
+  });
+
   /* Attach button callbacks for recording and playback */
   buttonRecord.attachCallback([&](int value) {
     if (value == 1) {
@@ -164,6 +177,17 @@ void setup() {
       isPlaying = false;
     }
     buttonStopPlay.update(value);
+    dashboard.sendUpdates();
+  });
+
+  // Attach callback for LED toggle button
+  buttonToggleLED.attachCallback([&](int value) {
+    if (value == 1) {
+      ledState = !ledState;  // Toggle the LED state
+      digitalWrite(LED_BUILTIN, ledState ? HIGH : LOW);
+      Serial.println(ledState ? "LED ON" : "LED OFF");
+    }
+    buttonToggleLED.update(value);
     dashboard.sendUpdates();
   });
 
