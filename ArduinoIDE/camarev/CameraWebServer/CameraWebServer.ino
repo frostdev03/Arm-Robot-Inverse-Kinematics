@@ -22,7 +22,7 @@
 //#define CAMERA_MODEL_M5STACK_ESP32CAM // No PSRAM
 //#define CAMERA_MODEL_M5STACK_UNITCAM // No PSRAM
 //#define CAMERA_MODEL_M5STACK_CAMS3_UNIT  // Has PSRAM
-#define CAMERA_MODEL_AI_THINKER  // Has PSRAM
+#define CAMERA_MODEL_AI_THINKER // Has PSRAM
 //#define CAMERA_MODEL_TTGO_T_JOURNAL // No PSRAM
 //#define CAMERA_MODEL_XIAO_ESP32S3 // Has PSRAM
 // ** Espressif Internal Boards **
@@ -32,14 +32,12 @@
 //#define CAMERA_MODEL_DFRobot_FireBeetle2_ESP32S3 // Has PSRAM
 //#define CAMERA_MODEL_DFRobot_Romeo_ESP32S3 // Has PSRAM
 #include "camera_pins.h"
-// #define EEPROM_SIZE 1
-
 
 // ===========================
 // Enter your WiFi credentials
 // ===========================
 const char *ssid = "meja makan";
-const char *password = "satuduatiga";
+const char *password = "11223344";
 
 void startCameraServer();
 void setupLedFlash(int pin);
@@ -71,7 +69,7 @@ void setup() {
   config.xclk_freq_hz = 20000000;
   config.frame_size = FRAMESIZE_UXGA;
   config.pixel_format = PIXFORMAT_JPEG;  // for streaming
-  config.pixel_format = PIXFORMAT_RGB565; // for face detection/recognition
+  //config.pixel_format = PIXFORMAT_RGB565; // for face detection/recognition
   config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
   config.fb_location = CAMERA_FB_IN_PSRAM;
   config.jpeg_quality = 12;
@@ -133,7 +131,6 @@ void setup() {
 // Setup LED FLash if LED pin is defined in camera_pins.h
 #if defined(LED_GPIO_NUM)
   setupLedFlash(LED_GPIO_NUM);
-
 #endif
 
   WiFi.begin(ssid, password);

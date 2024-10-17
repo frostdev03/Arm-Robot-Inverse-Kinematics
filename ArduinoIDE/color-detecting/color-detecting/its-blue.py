@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # Ganti alamat IP di bawah ini sesuai dengan yang ditampilkan di Serial Monitor
-url = 'http://192.168.3.201:81/stream'  # Pastikan Anda menggunakan alamat URL streaming yang benar
+url = 'http://192.168.197.50:81/stream'  # Pastikan Anda menggunakan alamat URL streaming yang benar
 
 # Membuka koneksi ke stream video
 cap = cv2.VideoCapture(url)

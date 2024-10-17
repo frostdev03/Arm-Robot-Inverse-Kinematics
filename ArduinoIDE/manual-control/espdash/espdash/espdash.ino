@@ -36,6 +36,9 @@ bool isRecording = false, isPlaying = false;
 int currentStep = 0, playIndex = 0;
 unsigned long lastPlayTime = 0;
 
+unsigned long lastUpdateTime = 0;
+const unsigned long updateInterval = 50;
+
 /* WiFi Credentials */
 const char* ssid = "meja makan";
 const char* password = "satuduatiga";
@@ -183,7 +186,7 @@ void setup() {
   // Attach callback for LED toggle button
   buttonToggleLED.attachCallback([&](int value) {
     if (value == 1) {
-      ledState = !ledState;  // Toggle the LED state
+      ledState = !ledState;  // Toggle the LED staten
       digitalWrite(LED_BUILTIN, ledState ? HIGH : LOW);
       Serial.println(ledState ? "LED ON" : "LED OFF");
     }
@@ -235,14 +238,18 @@ void playRecordedMotion() {
 }
 
 void loop() {
-  // Record and play loop
-  if (isRecording) {
-    recordPosition();
+  // Update servos periodically without blocking
+  if (millis() - lastUpdateTime >= updateInterval) {
+    lastUpdateTime = millis();
+    if (isRecording) {
+      recordPosition();
+    }
+
+    if (isPlaying) {
+      playRecordedMotion();
+    }
+
+    moveAllServos();  // Make sure to update servo positions in a non-blocking way
   }
 
-  if (isPlaying) {
-    playRecordedMotion();
-  }
-
-  delay(100);  // Adjust as necessary
 }

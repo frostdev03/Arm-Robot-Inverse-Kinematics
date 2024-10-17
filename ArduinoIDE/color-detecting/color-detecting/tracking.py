@@ -7,7 +7,7 @@ def nothing(x):
  
 #change the IP address below according to the
 #IP shown in the Serial monitor of Arduino code
-url='http://192.168.2.201/cam-lo.jpg'
+url = 'http://192.168.197.50:81/stream'  # Pastikan Anda menggunakan alamat URL streaming yang benar
  
 cv2.namedWindow("live transmission", cv2.WINDOW_AUTOSIZE)
  
