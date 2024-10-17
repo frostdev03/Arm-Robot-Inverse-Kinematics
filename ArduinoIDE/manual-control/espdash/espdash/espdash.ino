@@ -40,8 +40,8 @@ unsigned long lastUpdateTime = 0;
 const unsigned long updateInterval = 50;
 
 /* WiFi Credentials */
-const char* ssid = "meja makan";
-const char* password = "satuduatiga";
+const char* ssid = "Mi S23";
+const char* password = "haisayang";
 
 /* Start Webserver */
 AsyncWebServer server(80);
@@ -248,6 +248,8 @@ void loop() {
     if (isPlaying) {
       playRecordedMotion();
     }
+
+    // WiFi.reconnect();
 
     moveAllServos();  // Make sure to update servo positions in a non-blocking way
   }
