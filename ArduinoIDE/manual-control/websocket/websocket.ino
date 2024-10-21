@@ -3,8 +3,8 @@
 #include <WebSocketsServer.h>
 #include <ESP32Servo.h>
 
-const char* ssid = "RM.TERAPI";
-const char* password = "12345678";
+const char* ssid = "Kipas Angin";
+const char* password = "11223344";
 
 WebServer server(80);            // HTTP server pada port 80
 WebSocketsServer webSocket(81);  // WebSocket server pada port 81
@@ -212,7 +212,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length)
     // Parsing pesan dari WebSocket (contoh: "1:90" berarti Servo 1, sudut 90 derajat)
     int servoIndex = message.substring(0, message.indexOf(':')).toInt();
     int angle = message.substring(message.indexOf(':') + 1).toInt();
-
+    
     // Kontrol servo sesuai dengan pesan yang diterima
     switch (servoIndex) {
       case 1:
