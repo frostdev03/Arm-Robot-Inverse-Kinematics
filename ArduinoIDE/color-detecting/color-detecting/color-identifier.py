@@ -1,8 +1,12 @@
 import cv2
 import numpy as np
+import websocket
 
 # Ganti alamat IP di bawah ini sesuai dengan yang ditampilkan di Serial Monitor
-url = 'http://192.168.197.50:81/stream'  # Pastikan Anda menggunakan alamat URL streaming yang benar
+url = 'http://192.168.179.50:81/stream'  # Pastikan Anda menggunakan alamat URL streaming yang benar
+
+# ws = websocket.WebSocket()
+# ws.connect("ws://ip")
 
 # Membuka koneksi ke stream video
 cap = cv2.VideoCapture(url)
@@ -56,6 +60,9 @@ while True:
     # Keluar dari loop jika tombol 'q' ditekan
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
+
+# ws.send(f"{x},{y}")
+# ws.close()
 
 # Melepaskan resource
 cap.release()

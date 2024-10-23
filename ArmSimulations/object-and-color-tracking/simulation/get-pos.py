@@ -35,6 +35,7 @@ while True:
     
     cube_detected = False
     cube_color = None
+    cube_position = None  # Untuk menyimpan posisi x, y dari kubus
 
     # Deteksi kubus berdasarkan kontur
     for contour in contours:
@@ -51,6 +52,13 @@ while True:
                 if 0.9 <= aspect_ratio <= 1.1:
                     cube_detected = True
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 3)
+
+                    # Hitung posisi tengah (centroid) dari kubus
+                    cube_position = (int(x + w / 2), int(y + h / 2))
+                    cx, cy = cube_position  # Koordinat x dan y dari kubus
+                    
+                    # Tampilkan posisi x, y di frame
+                    cv2.putText(frame, f"Pos: ({cx}, {cy})", (cx, cy - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
 
                     # Deteksi warna di dalam area kotak yang terdeteksi
                     roi = hsv_frame[y:y+h, x:x+w]
@@ -76,7 +84,7 @@ while True:
     if cube_detected and cube_color:
         cv2.putText(frame, f"{cube_color} Cube Detected", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
-    # Menampilkan frame dengan deteksi warna dan kubus
+    # Menampilkan frame dengan deteksi warna, kubus, dan posisi
     cv2.imshow("Frame", frame)
     cv2.imshow("Edges", edges)
 

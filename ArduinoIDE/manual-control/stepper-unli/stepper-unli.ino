@@ -1,28 +1,51 @@
 #include <AccelStepper.h>
 
-// Define stepper motor connections and motor interface type.
-// Motor interface type:
-// 1 - Driver (step and direction pins)
-// 4 - Half-step method (4 pins controlling the coils directly)
+// Define pin connections for ESP32
+const int dirPin = 25;   // You can choose any suitable GPIO pin
+const int stepPin = 26;  // You can choose any suitable GPIO pin
+
+// Define motor interface type
 #define motorInterfaceType 1
 
-// Define motor pin connections
-#define dirPin 26    // Pin for direction
-#define stepPin 13  // Pin for step
+// Creates an instance
+AccelStepper myStepper(motorInterfaceType, stepPin, dirPin);
 
-// Create a new instance of the AccelStepper class:
-AccelStepper stepper(motorInterfaceType, stepPin, dirPin);
+// Konstanta untuk jumlah langkah per derajat
+const int stepsPerRevolution = 200; // Misalnya, 200 langkah per putaran penuh (sesuaikan dengan stepper Anda)
+const int degreesPerRevolution = 360;
+const float stepsPerDegree = (float)stepsPerRevolution / degreesPerRevolution; // Langkah per derajat
 
 void setup() {
-  // Set the maximum speed and acceleration:
-  stepper.setMaxSpeed(1000);     // Set maximum speed (steps per second)
-  stepper.setAcceleration(500);  // Set acceleration rate (steps per second^2)
+  // Mulai komunikasi serial untuk menerima input dari keyboard
+  Serial.begin(115200);
   
-  // Optional: Set initial speed (if you want to set a constant speed)
-  stepper.setSpeed(600);  // Set a constant speed (steps per second)
+  // Set motor parameters for smooth movement
+  myStepper.setMaxSpeed(700);      // Adjust maximum speed (steps per second)
+  myStepper.setAcceleration(300);  // Adjust acceleration (steps per second squared)
+
+  Serial.println("Input degree to move the stepper motor (0-360):");
 }
 
 void loop() {
-  // Move the motor continuously at the constant speed set in setup()
-  stepper.runSpeed();  // Run motor at constant speed indefinitely
+  // Cek apakah ada input dari Serial Monitor
+  if (Serial.available() > 0) {
+    String input = Serial.readStringUntil('\n');  // Membaca input sampai 'Enter'
+    int degree = input.toInt();  // Konversi input menjadi integer
+    
+    if (degree >= 0 && degree <= 360) {
+      // Hitung langkah target berdasarkan input derajat
+      int targetSteps = degree * stepsPerDegree;
+      Serial.print("Moving to position: ");
+      Serial.print(degree);
+      Serial.println(" degrees");
+      
+      // Gerakkan stepper ke posisi target
+      myStepper.moveTo(targetSteps);
+    } else {
+      Serial.println("Please input a value between 0 and 360.");
+    }
+  }
+
+  // Move the motor to the target position
+  myStepper.run();
 }

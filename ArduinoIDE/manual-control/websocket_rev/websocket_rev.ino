@@ -2,14 +2,22 @@
 #include <WebServer.h>
 #include <WebSocketsServer.h>
 #include <ESP32Servo.h>
+#include <AccelStepper.h>
 
 const char* ssid = "Kipas Angin";
 const char* password = "11223344";
 
+#define motorInterfaceType 1
+#define dirPin 26  // Pin for direction
+#define stepPin 35
+
+AccelStepper stepper(motorInterfaceType, stepPin, dirPin);
+
 WebServer server(80);            // HTTP server pada port 80
 WebSocketsServer webSocket(81);  // WebSocket server pada port 81
 
-Servo servo1;
+Servo servo1;   // Lower arm servo 1
+Servo servo1b;  // Lower arm servo 2 (tambahan)
 Servo servo2;
 Servo servo3;
 Servo servo4;
@@ -18,7 +26,6 @@ Servo servo6;
 
 // Halaman HTML di-embed langsung di dalam kode
 const char* htmlPage = R"rawliteral(
-<!DOCTYPE html>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -84,6 +91,13 @@ const char* htmlPage = R"rawliteral(
         border-radius: 50%;
       }
 
+      .degree-display {
+        font-size: 1.2em;
+        margin-top: 10px;
+        text-align: center;
+        color: #555;
+      }
+
       .button-container {
         display: flex;
         gap: 10px;
@@ -125,54 +139,76 @@ const char* htmlPage = R"rawliteral(
   </head>
   <body>
     <h1>Robot Arm Control</h1>
+
     <div>
-      <label for="servo1">Lower Arm:</label>
+      <label for="servo1">Lower Arm: <span id="servo1Degree">0</span>°</label>
       <input
         type="range"
         id="servo1"
         min="0"
         max="180"
-        oninput="sendServoPosition(1, this.value)"
+        value="0"
+        oninput="updateSlider(1, this.value)"
       />
     </div>
+
     <div>
-      <label for="servo2">Center Arm:</label>
+      <label for="servo2">Center Arm: <span id="servo2Degree">0</span>°</label>
       <input
         type="range"
         id="servo2"
         min="0"
         max="180"
-        oninput="sendServoPosition(2, this.value)"
+        value="0"
+        oninput="updateSlider(2, this.value)"
       />
     </div>
+
     <div>
-      <label for="servo3">Upper Arm:</label>
+      <label for="servo3">Upper Arm: <span id="servo3Degree">0</span>°</label>
       <input
         type="range"
         id="servo3"
         min="0"
         max="180"
-        oninput="sendServoPosition(3, this.value)"
+        value="0"
+        oninput="updateSlider(3, this.value)"
       />
     </div>
+
     <div>
-      <label for="servo4">Neck Gripper:</label>
+      <label for="servo4">Neck Gripper: <span id="servo4Degree">0</span>°</label>
       <input
         type="range"
         id="servo4"
         min="0"
-        max="180"
-        oninput="sendServoPosition(4, this.value)"
+        max="360"
+        value="0"
+        oninput="updateSlider(4, this.value)"
       />
     </div>
+
     <div>
-      <label for="servo5">Gripper:</label>
+      <label for="servo5">Gripper: <span id="servo5Degree">0</span>°</label>
       <input
         type="range"
         id="servo5"
         min="0"
         max="180"
-        oninput="sendServoPosition(5, this.value)"
+        value="0"
+        oninput="updateSlider(5, this.value)"
+      />
+    </div>
+
+ <div>
+      <label for="stepper">Stepper Motor Speed: <span id="stepperDegree">0</span>°</label>
+      <input
+        type="range"
+        id="stepper"
+        min="0"
+        max="360"
+        value="0"
+        oninput="updateSlider(7, this.value)"
       />
     </div>
 
@@ -182,11 +218,24 @@ const char* htmlPage = R"rawliteral(
       <button id="stopRecordBtn" onclick="sendCommand('stopRecord')">Stop Record</button>
       <button id="playRecordBtn" onclick="sendCommand('play')">Play Record</button>
       <button id="stopPlayBtn" onclick="sendCommand('stopPlay')">Stop Play</button>
-      <button id="blinkBtn" onclick="sendCommand('blink')">Blink</button>
     </div>
 
     <script>
       var webSocket = new WebSocket("ws://" + window.location.hostname + ":81/");
+
+      function updateSlider(servo, angle) {
+        document.getElementById(`servo${servo}Degree`).innerText = angle;
+        sendServoPosition(servo, angle);
+
+        if (servo === 7) {
+          document.getElementById(`stepperDegree`).innerText = angle;  // Update Stepper angle display
+        }
+        sendServoPosition(servo, angle);
+      }
+
+      function sendServoPosition(servo, angle) {
+        webSocket.send(servo + ":" + angle);
+      }
 
       function sendServoPosition(servo, angle) {
         webSocket.send(servo + ":" + angle);
@@ -205,23 +254,6 @@ void handleRoot() {
   server.send(200, "text/html", htmlPage);
 }
 
-// PID
-float Kp = 0.5, Ki = 0.1, Kd = 0.05;
-float prevError = 0, integral = 0;
-
-void moveRobot(int currentPosX, int targetPosX) {
-  float error = targetPosX - currentPosX;  // Menghitung error (selisih posisi)
-  integral += error;                       // Akumulasi error untuk komponen integral
-  float derivative = error - prevError;    // Menghitung kecepatan perubahan error (komponen derivatif)
-  prevError = error;
-
-  float output = Kp * error + Ki * integral + Kd * derivative;
-
-  if (output > 0) {
-  } else if (output < 0) {
-  }
-}
-
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length) {
   if (type == WStype_TEXT) {
     String message = String((char*)payload);
@@ -234,6 +266,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length)
     switch (servoIndex) {
       case 1:
         servo1.write(angle);
+        servo1b.write(180 - angle);
         break;
       case 2:
         servo2.write(angle);
@@ -250,14 +283,12 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length)
       case 6:
         servo6.write(angle);
         break;
+      case 7:
+        if (angle != stepper.currentPosition()) {
+          stepper.moveTo(angle * (stepper.maxSpeed() / 360));  // Hanya bergerak jika ada perubahan posisi
+        }
+        break;
     }
-
-    //input x & y menerima dari pytong
-    int delimiter = message.indexOf(',');
-    int x = message.substring(0, delimiter).toInt();
-    int y = message.substring(delimiter + 1).toInt();
-
-    moveRobot(x, y);
   }
 }
 
@@ -274,40 +305,30 @@ void setup() {
   Serial.println(WiFi.localIP());
 
   // Setup servo
-  servo1.attach(13);  //left lower
-  servo2.attach(12);  //center
-  servo3.attach(14);  //upper
-  servo4.attach(27);  //neck
-  servo5.attach(26);  //gripper
-  servo6.attach(25);  //right lower
+  servo1.attach(13);   // Lower arm servo 1
+  servo1b.attach(27);  // Lower arm servo 2 (terbalik)
+  servo2.attach(12);   // Center arm
+  servo3.attach(14);   // Upper arm
+  servo4.attach(33);   // Neck gripper
+  servo5.attach(25);   // Gripper
 
-  // Atur handler untuk URL root "/"
-  server.on("/", handleRoot);
+  stepper.setCurrentPosition(0);  // Set posisi awal ke 0
+  stepper.setMaxSpeed(500);       // Set kecepatan maksimum motor stepper
+  stepper.setAcceleration(500);   // Set acceleration rate (steps per second^2)
 
-  // Mulai server HTTP dan WebSocket
-  server.begin();
+
+  // WebSocket
   webSocket.begin();
   webSocket.onEvent(webSocketEvent);
+
+  // Setup server
+  server.on("/", handleRoot);
+  server.begin();
 }
 
 void loop() {
-  server.handleClient();  // Menangani request HTTP
-  webSocket.loop();       // Menangani komunikasi WebSocket
+  webSocket.loop();
+  server.handleClient();
+
+  stepper.run();  // Memastikan stepper bergerak ke posisi yang diinginkan
 }
-
-// Fuzzy
-// Fuzzy* fuzzy = new Fuzzy();
-
-// // Membuat FuzzySet untuk posisi objek (misalnya, Left, Center, Right)
-// FuzzySet* left = new FuzzySet(-30, -15, -15, 0);
-// FuzzySet* center = new FuzzySet(-10, 0, 0, 10);
-// FuzzySet* right = new FuzzySet(0, 15, 15, 30);
-
-// // Menentukan output (kecepatan robot)
-// FuzzySet* slow = new FuzzySet(-10, 0, 0, 10);
-// FuzzySet* fast = new FuzzySet(10, 20, 20, 30);
-
-// // Membuat aturan fuzzy
-// fuzzy->addFuzzyRule(new FuzzyRule(1, fuzzy->createFuzzyRuleCondition("Position", FuzzyRuleCondition::LEFT), fuzzy->createFuzzyRuleAction("Speed", FuzzyRuleAction::FAST)));
-// fuzzy->addFuzzyRule(new FuzzyRule(2, fuzzy->createFuzzyRuleCondition("Position", FuzzyRuleCondition::RIGHT), fuzzy->createFuzzyRuleAction("Speed", FuzzyRuleAction::FAST)));
-// fuzzy->addFuzzyRule(new FuzzyRule(3, fuzzy->createFuzzyRuleCondition("Position", FuzzyRuleCondition::CENTER), fuzzy->createFuzzyRuleAction("Speed", FuzzyRuleAction::SLOW)));
