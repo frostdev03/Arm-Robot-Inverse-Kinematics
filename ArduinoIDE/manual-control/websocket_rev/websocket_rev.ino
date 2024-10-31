@@ -158,7 +158,7 @@ const char* htmlPage = R"rawliteral(
         type="range"
         id="servo2"
         min="0"
-        max="180"
+        max="170"
         value="0"
         oninput="updateSlider(2, this.value)"
       />
@@ -170,7 +170,7 @@ const char* htmlPage = R"rawliteral(
         type="range"
         id="servo3"
         min="0"
-        max="180"
+        max="170"
         value="0"
         oninput="updateSlider(3, this.value)"
       />
@@ -200,7 +200,7 @@ const char* htmlPage = R"rawliteral(
       />
     </div>
 
- <div>
+    <div>
       <label for="stepper">Stepper Motor Speed: <span id="stepperDegree">0</span>°</label>
       <input
         type="range"
