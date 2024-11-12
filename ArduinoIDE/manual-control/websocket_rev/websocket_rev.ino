@@ -24,6 +24,18 @@ Servo servo4;
 Servo servo5;
 Servo servo6;
 
+bool isRecording = false;
+bool isPlaying = false;
+unsigned long recordInterval = 500;  // Record interval in ms
+unsigned long lastRecordTime = 0;
+
+int stepsToMove = 200;  // Total langkah yang diinginkan
+int stepDelay = 1000;
+
+int recordedPositions[6][100];  // Array to store up to 100 servo positions for each servo
+int playbackIndex = 0;
+int recordLength = 0;
+
 // Halaman HTML di-embed langsung di dalam kode
 const char* htmlPage = R"rawliteral(
 <!DOCTYPE html>
@@ -201,12 +213,12 @@ const char* htmlPage = R"rawliteral(
     </div>
 
     <div>
-      <label for="stepper">Stepper Motor Speed: <span id="stepperDegree">0</span>°</label>
+      <label for="servo7">Stepper Motor Position: <span id="servo7Degree">0</span>°</label>
       <input
         type="range"
-        id="stepper"
+        id="servo7"
         min="0"
-        max="360"
+        max="200"
         value="0"
         oninput="updateSlider(7, this.value)"
       />
@@ -226,11 +238,6 @@ const char* htmlPage = R"rawliteral(
       function updateSlider(servo, angle) {
         document.getElementById(`servo${servo}Degree`).innerText = angle;
         sendServoPosition(servo, angle);
-
-        if (servo === 7) {
-          document.getElementById(`stepperDegree`).innerText = angle;  // Update Stepper angle display
-        }
-        sendServoPosition(servo, angle);
       }
 
       function sendServoPosition(servo, angle) {
@@ -244,6 +251,39 @@ const char* htmlPage = R"rawliteral(
       function sendCommand(command) {
         webSocket.send("cmd:" + command);
       }
+
+      function updateButtonState(command) {
+        const recordBtn = document.getElementById("recordBtn");
+        const stopRecordBtn = document.getElementById("stopRecordBtn");
+        const playRecordBtn = document.getElementById("playRecordBtn");
+        const stopPlayBtn = document.getElementById("stopPlayBtn");
+
+        if (command === "record") {
+          recordBtn.style.backgroundColor = "grey";
+          stopRecordBtn.style.backgroundColor = "#333";
+        } else if (command === "stopRecord") {
+          recordBtn.style.backgroundColor = "#333";
+          stopRecordBtn.style.backgroundColor = "grey";
+        } else if (command === "play") {
+          playRecordBtn.style.backgroundColor = "grey";
+          stopPlayBtn.style.backgroundColor = "#333";
+        } else if (command === "stopPlay") {
+          playRecordBtn.style.backgroundColor = "#333";
+          stopPlayBtn.style.backgroundColor = "grey";
+        }
+      }
+
+      webSocket.onmessage = function(event) {
+        // Data posisi dan warna diterima melalui WebSocket
+        const data = event.data.split(",");
+        const x = data[0];
+        const y = data[1];
+        const color = data[2];
+
+        // Perbarui teks di halaman
+        document.getElementById("objectPosition").innerText = `Position: X = ${x}, Y = ${y}`;
+        document.getElementById("objectColor").innerText = `Color: ${color}`;
+      };
     </script>
   </body>
 </html>
@@ -254,6 +294,68 @@ void handleRoot() {
   server.send(200, "text/html", htmlPage);
 }
 
+void resetMotors() {
+  servo1.write(0);
+  servo1b.write(180);
+  servo2.write(0);
+  servo3.write(0);
+  servo4.write(0);
+  servo5.write(0);
+  servo6.write(0);
+  stepper.setCurrentPosition(0);
+}
+
+void setServoPosition(int servoIndex, int angle) {
+  switch (servoIndex) {
+    case 1:
+      servo1.write(angle);
+      servo1b.write(180 - angle);
+      break;
+    case 2: servo2.write(angle); break;
+    case 3: servo3.write(angle); break;
+    case 4: servo4.write(angle); break;
+    case 5: servo5.write(angle); break;
+    case 6: servo6.write(angle); break;
+    case 7:
+      int targetSteps = angle * 2;  // 200 steps per 360 degrees
+      if (stepper.targetPosition() != targetSteps) {
+        stepper.moveTo(targetSteps);
+      }
+      break;
+  }
+}
+
+void recordPositions() {
+  if (millis() - lastRecordTime > recordInterval && recordLength < 100) {
+    lastRecordTime = millis();
+    recordedPositions[0][recordLength] = servo1.read();
+    recordedPositions[1][recordLength] = servo2.read();
+    recordedPositions[2][recordLength] = servo3.read();
+    recordedPositions[3][recordLength] = servo4.read();
+    recordedPositions[4][recordLength] = servo5.read();
+    recordedPositions[5][recordLength] = servo6.read();
+    recordLength++;
+    Serial.println("Position recorded.");
+  }
+}
+
+void playRecording() {
+  if (playbackIndex < recordLength) {
+    servo1.write(recordedPositions[0][playbackIndex]);
+    servo1b.write(180 - recordedPositions[0][playbackIndex]);
+    servo2.write(recordedPositions[1][playbackIndex]);
+    servo3.write(recordedPositions[2][playbackIndex]);
+    servo4.write(recordedPositions[3][playbackIndex]);
+    servo5.write(recordedPositions[4][playbackIndex]);
+    servo6.write(recordedPositions[5][playbackIndex]);
+    playbackIndex++;
+  } else {
+    isPlaying = false;
+    resetMotors();
+    Serial.println("Playback finished.");
+  }
+}
+
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length) {
   if (type == WStype_TEXT) {
     String message = String((char*)payload);
@@ -261,6 +363,8 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length)
     // Parsing pesan dari WebSocket (contoh: "1:90" berarti Servo 1, sudut 90 derajat)
     int servoIndex = message.substring(0, message.indexOf(':')).toInt();
     int angle = message.substring(message.indexOf(':') + 1).toInt();
+
+    setServoPosition(servoIndex, angle);
 
     // Kontrol servo sesuai dengan pesan yang diterima
     switch (servoIndex) {
@@ -284,10 +388,32 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length)
         servo6.write(angle);
         break;
       case 7:
-        if (angle != stepper.currentPosition()) {
-          stepper.moveTo(angle * (stepper.maxSpeed() / 360));  // Hanya bergerak jika ada perubahan posisi
-        }
+        int targetSteps = angle * 2;  // Misal, konversi dari derajat ke langkah
+        stepper.moveTo(targetSteps);
+        Serial.println("Stepper target position set to: " + String(targetSteps));  // Mengatur target posisi langkah stepper
         break;
+
+        if (message.startsWith("cmd:")) {
+          String command = message.substring(4);
+          if (command == "record") {
+            isRecording = true;
+            isPlaying = false;  // Stop playback if recording starts
+            recordLength = 0;
+            Serial.println("Recording started.");
+          } else if (command == "stopRecord") {
+            isRecording = false;
+            Serial.println("Recording stopped.");
+          } else if (command == "play") {
+            isPlaying = true;
+            // isRecording = false;
+            playbackIndex = 0;
+            Serial.println("Playing recording.");
+          } else if (command == "stopPlay") {
+            isPlaying = false;
+            resetMotors();
+            Serial.println("Playback stopped.");
+          }
+        }
     }
   }
 }
@@ -295,6 +421,9 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length)
 void setup() {
   Serial.begin(115200);
 
+  pinMode(dirPin, OUTPUT);
+  pinMode(stepPin, OUTPUT);
+  digitalWrite(dirPin, HIGH);  // HIGH untuk satu arah, LOW untuk arah sebaliknya
   // Koneksi ke WiFi
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
@@ -312,9 +441,8 @@ void setup() {
   servo4.attach(33);   // Neck gripper
   servo5.attach(25);   // Gripper
 
-  stepper.setCurrentPosition(0);  // Set posisi awal ke 0
-  stepper.setMaxSpeed(500);       // Set kecepatan maksimum motor stepper
-  stepper.setAcceleration(500);   // Set acceleration rate (steps per second^2)
+  stepper.setMaxSpeed(1000);     // Misalnya 1000 step per detik
+  stepper.setAcceleration(500);  // Misalnya 500 step per detik kuadrat
 
 
   // WebSocket
@@ -330,5 +458,18 @@ void loop() {
   webSocket.loop();
   server.handleClient();
 
-  stepper.run();  // Memastikan stepper bergerak ke posisi yang diinginkan
+  for (int i = 0; i < stepsToMove; i++) {
+    digitalWrite(stepPin, HIGH);   // Step HIGH untuk mulai langkah
+    delayMicroseconds(stepDelay);  // Tunda untuk kecepatan
+    digitalWrite(stepPin, LOW);    // Step LOW untuk mengakhiri langkah
+    delayMicroseconds(stepDelay);  // Tunda lagi untuk stabilitas
+  }
+
+
+  if (isRecording) recordPositions();
+  if (isPlaying) playRecording();
+
+  stepper.run();
+
+  delay(1000);  // Tunda 1 detik setelah selesai bergerak untuk pengujian
 }

@@ -1,13 +1,19 @@
 import cv2
 import numpy as np
 import websocket  # Tambahkan pustaka websocket-client
+import json  # Import pustaka JSON untuk mengirim data sebagai JSON
 
 # URL untuk video streaming
-url = 'http://192.168.13.50:81/stream'
+url = 'http://192.168.188.50:81/stream'
 
 # WebSocket server address
 ws = websocket.WebSocket()
-ws.connect("ws://192.168.1.11:80")  # Ganti dengan IP dan port ESP32 yang menjalankan server WebSocket
+try:
+    ws.connect("ws://192.168.188.37:81")  # Ganti dengan IP dan port ESP32 yang menjalankan server WebSocket
+    print("WebSocket connected")
+except Exception as e:
+    print(f"Failed to connect to WebSocket server: {e}")
+    ws = None
 
 # Nilai HSV untuk warna yang ingin dideteksi
 hsv_colors = {
@@ -19,6 +25,7 @@ hsv_colors = {
 
 # Membuka kamera
 cap = cv2.VideoCapture(url)
+# cap = cv2.VideoCapture(0)
 
 # Kernel untuk morfologi
 kernel = np.ones((5, 5), np.uint8)
@@ -46,6 +53,7 @@ while True:
 
     cube_detected = False
     cube_color = None
+    cube_center_x, cube_center_y = None, None  # Variabel posisi pusat kubus
 
     for contour in contours:
         area = cv2.contourArea(contour)
@@ -89,13 +97,17 @@ while True:
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
                     # Kirim data ke ESP32 jika objek terdeteksi
-                    if cube_detected and cube_color:
+                    if cube_detected and cube_color and ws:
                         data = {
                             "x": cube_center_x,
                             "y": cube_center_y,
                             "color": cube_color,
                         }
-                        ws.send(str(data))  # Kirim data dalam format string JSON ke ESP32
+                        try:
+                            ws.send(json.dumps(data))  # Kirim data dalam format JSON ke ESP32
+                            print("Data sent:", data)
+                        except Exception as e:
+                            print(f"Failed to send data: {e}")
 
                     # Gambarkan garis bantu sumbu X dan Y
                     cv2.line(frame, (cube_center_x, 0), (cube_center_x, frame.shape[0]), (255, 255, 0), 1)
@@ -113,6 +125,7 @@ while True:
         break
 
 # Tutup koneksi WebSocket
-ws.close()
+if ws:
+    ws.close()
 cap.release()
 cv2.destroyAllWindows()

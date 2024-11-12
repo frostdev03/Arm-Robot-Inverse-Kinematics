@@ -207,7 +207,7 @@ const char* htmlPage = R"rawliteral(
     </div>
 
     <div>
-      <label for="stepper">Stepper Motor Speed: <span id="stepperDegree">0</span>°</label>
+      <label for="servo7">Stepper Motor Speed: <span id="servo7Degree">0</span>°</label>
       <input
         type="range"
         id="stepper"
@@ -229,25 +229,8 @@ const char* htmlPage = R"rawliteral(
     <script>
       var webSocket = new WebSocket("ws://" + window.location.hostname + ":81/");
 
-      webSocket.onmessage = function(event) {
-        // Data posisi dan warna diterima melalui WebSocket
-        const data = event.data.split(",");
-        const x = data[0];
-        const y = data[1];
-        const color = data[2];
-
-        // Perbarui teks di halaman
-        document.getElementById("objectPosition").innerText = `Position: X = ${x}, Y = ${y}`;
-        document.getElementById("objectColor").innerText = `Color: ${color}`;
-      };
-
       function updateSlider(servo, angle) {
         document.getElementById(`servo${servo}Degree`).innerText = angle;
-        sendServoPosition(servo, angle);
-
-        if (servo === 7) {
-          document.getElementById(`stepperDegree`).innerText = angle;  // Update Stepper angle display
-        }
         sendServoPosition(servo, angle);
       }
 
@@ -262,6 +245,18 @@ const char* htmlPage = R"rawliteral(
       function sendCommand(command) {
         webSocket.send("cmd:" + command);
       }
+
+      webSocket.onmessage = function(event) {
+        // Data posisi dan warna diterima melalui WebSocket
+        const data = event.data.split(",");
+        const x = data[0];
+        const y = data[1];
+        const color = data[2];
+
+        // Perbarui teks di halaman
+        document.getElementById("objectPosition").innerText = `Position: X = ${x}, Y = ${y}`;
+        document.getElementById("objectColor").innerText = `Color: ${color}`;
+      };
     </script>
   </body>
 </html>
@@ -269,43 +264,47 @@ const char* htmlPage = R"rawliteral(
 
 // Fungsi untuk menangani permintaan root
 void handleRoot() {
-    server.send(200, "text/html", htmlPage);
+  server.send(200, "text/html", htmlPage);
 }
 
 void setup() {
-    Serial.begin(115200);
+  Serial.begin(115200);
 
-    // Koneksi ke WiFi
-    WiFi.begin(ssid, password);
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(1000);
-        Serial.println("Menghubungkan ke WiFi...");
-    }
-    Serial.println("Terhubung ke WiFi!");
-    Serial.println(WiFi.localIP());
+  // Koneksi ke WiFi
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Menghubungkan ke WiFi...");
+  }
+  Serial.println("Terhubung ke WiFi!");
+  Serial.println(WiFi.localIP());
 
-    // Setup servo
-    servo1.attach(13);   // Lower arm servo 1
-    servo1b.attach(27);  // Lower arm servo 2 (terbalik)
-    servo2.attach(12);   // Center arm
-    servo3.attach(14);   // Upper arm
-    servo4.attach(33);   // Neck gripper
-    servo5.attach(25);   // Gripper
+  // Setup servo
+  servo1.attach(13);   // Lower arm servo 1
+  servo1b.attach(27);  // Lower arm servo 2 (terbalik)
+  servo2.attach(12);   // Center arm
+  servo3.attach(14);   // Upper arm
+  servo4.attach(33);   // Neck gripper
+  servo5.attach(25);   // Gripper
 
-    stepper.setCurrentPosition(0);  // Set posisi awal ke 0
-    stepper.setMaxSpeed(500);       // Set kecepatan maksimum motor stepper
-    stepper.setAcceleration(500);   // Set acceleration rate (steps per second^2)
+  stepper.setCurrentPosition(0);  // Set posisi awal ke 0
+  stepper.setMaxSpeed(500);       // Set kecepatan maksimum motor stepper
+  stepper.setAcceleration(500);   // Set acceleration rate (steps per second^2)
 
-    // Inisialisasi WebSocket
-    initWebSocket();
+  // Inisialisasi WebSocket
+  initWebSocket();
 
-    // Setup server
-    server.on("/", handleRoot);
-    server.begin();
+  String jsonData = "{\"x\": 100, \"y\": 150, \"color\": \"Blue\"}";
+  webSocket.broadcastTXT(jsonData);  // Kirim data ke semua client yang terhubung
+
+
+  // Setup server
+  server.on("/", handleRoot);
+  server.begin();
 }
 
 void loop() {
-    webSocket.loop();  // WebSocket loop
-    server.handleClient();
-    stepper.run();  // Memastikan stepper bergerak ke posisi yang diinginkan
+  webSocket.loop();  // WebSocket loop
+  server.handleClient();
+  stepper.run();  // Memastikan stepper bergerak ke posisi yang diinginkan
 }
