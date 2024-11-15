@@ -4,8 +4,8 @@
 #include <AccelStepper.h>
 #include "WebSocketHandler.h"  // Tambahkan ini
 
-const char* ssid = "ceragem";
-const char* password = "batugiok";
+const char* ssid = "Kipas Angin";
+const char* password = "11223344";
 
 #define motorInterfaceType 1
 #define dirPin 26  // Pin untuk direction
@@ -23,6 +23,35 @@ Servo servo3;
 Servo servo4;
 Servo servo5;
 Servo servo6;
+
+// Initial positions for the servos
+int servo1_pos = 0;
+int servo1b_pos = 0;
+int servo2_pos = 0;
+int servo3_pos = 0;
+int servo4_pos = 0;
+int servo5_pos = 0;
+int servo6_pos = 0;
+
+// Constants for recording
+const int MAX_MOTION_STEPS = 100;  // Maximum number of steps that can be recorded
+
+// Arrays to store recorded positions
+int recordedPositions1[MAX_MOTION_STEPS];
+int recordedPositions1b[MAX_MOTION_STEPS];
+int recordedPositions2[MAX_MOTION_STEPS];
+int recordedPositions3[MAX_MOTION_STEPS];
+int recordedPositions4[MAX_MOTION_STEPS];
+int recordedPositions5[MAX_MOTION_STEPS];
+int recordedPositions6[MAX_MOTION_STEPS];
+
+// Recording variables
+bool isRecording = false;
+bool isPlaying = false;
+int currentStep = 0;
+int playIndex = 0;
+
+unsigned long lastPlayTime = 0;
 
 // Halaman HTML
 const char* htmlPage = R"rawliteral(
@@ -267,6 +296,16 @@ void handleRoot() {
   server.send(200, "text/html", htmlPage);
 }
 
+void moveAllServos() {
+  servo1.write(servo1_pos);
+  servo1b.write(servo1b_pos);
+  servo2.write(servo2_pos);
+  servo3.write(servo3_pos);
+  servo4.write(servo4_pos);
+  servo5.write(servo5_pos);
+  servo6.write(servo6_pos);
+}
+
 void setup() {
   Serial.begin(115200);
 
@@ -287,6 +326,8 @@ void setup() {
   servo4.attach(33);   // Neck gripper
   servo5.attach(25);   // Gripper
 
+  moveAllServos();
+
   stepper.setCurrentPosition(0);  // Set posisi awal ke 0
   stepper.setMaxSpeed(500);       // Set kecepatan maksimum motor stepper
   stepper.setAcceleration(500);   // Set acceleration rate (steps per second^2)
@@ -297,14 +338,49 @@ void setup() {
   String jsonData = "{\"x\": 100, \"y\": 150, \"color\": \"Blue\"}";
   webSocket.broadcastTXT(jsonData);  // Kirim data ke semua client yang terhubung
 
-
   // Setup server
   server.on("/", handleRoot);
   server.begin();
 }
 
+void recordPosition() {
+  if (currentStep < MAX_MOTION_STEPS) {
+    recordedPositions1[currentStep] = servo1_pos;
+    recordedPositions1b[currentStep] = servo1b_pos;
+    recordedPositions2[currentStep] = servo2_pos;
+    recordedPositions3[currentStep] = servo3_pos;
+    recordedPositions4[currentStep] = servo4_pos;
+    recordedPositions5[currentStep] = servo5_pos;
+    recordedPositions6[currentStep] = servo6_pos;
+    currentStep++;
+  } else {
+    Serial.println("Recording buffer full.");
+  }
+}
+
+void playRecordedMotion() {
+  if (millis() - lastPlayTime > 0) {  // Play motion every 500 ms
+    if (playIndex < currentStep) {
+      servo1.write(recordedPositions1[playIndex]);
+      servo1b.write(recordedPositions1b[playIndex]);
+      servo2.write(recordedPositions2[playIndex]);
+      servo3.write(recordedPositions3[playIndex]);
+      servo4.write(recordedPositions4[playIndex]);
+      servo5.write(recordedPositions5[playIndex]);
+      servo6.write(recordedPositions6[playIndex]);
+      playIndex++;
+      lastPlayTime = millis();
+    } else {
+      isPlaying = false;  // Stop playing when done
+    }
+  }
+}
+
 void loop() {
   webSocket.loop();  // WebSocket loop
   server.handleClient();
-  stepper.run();  // Memastikan stepper bergerak ke posisi yang diinginkan
+  stepper.run();  
+
+  if (isRecording) recordPosition();
+  if (isPlaying) playRecordedMotion();
 }
