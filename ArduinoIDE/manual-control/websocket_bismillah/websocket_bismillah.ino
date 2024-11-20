@@ -1,3 +1,4 @@
+//websocket_bismillah.ino
 #include <WiFi.h>
 #include <WebServer.h>
 #include <ESP32Servo.h>
@@ -335,8 +336,8 @@ void setup() {
   // Inisialisasi WebSocket
   initWebSocket();
 
-  String jsonData = "{\"x\": 100, \"y\": 150, \"color\": \"Blue\"}";
-  webSocket.broadcastTXT(jsonData);  // Kirim data ke semua client yang terhubung
+  // String jsonData = "{\"x\": 100, \"y\": 150, \"color\": \"Blue\"}";
+  // webSocket.broadcastTXT(jsonData);  // Kirim data ke semua client yang terhubung
 
   // Setup server
   server.on("/", handleRoot);
