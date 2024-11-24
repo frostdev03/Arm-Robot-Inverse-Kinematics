@@ -3,7 +3,7 @@
 //Define servo pins
 #define SERVO1_PIN 3  // Servo 1 and 2 (bottom arm, above base)
 #define SERVO2_PIN 13  // Same as SERVO1_PIN for combined movement
-#define SERVO3_PIN 9  // Middle arm
+#define SERVO3_PIN 5  // Middle arm
 #define SERVO4_PIN 14  // Lower neck
 #define SERVO5_PIN 26  // Neck gripper (special range)
 #define SERVO6_PIN 27  // Gripper/claw

@@ -9,7 +9,7 @@ const char* ssid = "Kipas Angin";
 const char* password = "11223344";
 
 #define motorInterfaceType 1
-#define dirPin 26  // Pin untuk direction
+#define dirPin 26  
 #define stepPin 35
 
 AccelStepper stepper(motorInterfaceType, stepPin, dirPin);
@@ -259,10 +259,17 @@ const char* htmlPage = R"rawliteral(
     <script>
       var webSocket = new WebSocket("ws://" + window.location.hostname + ":81/");
 
+      // function updateSlider(servo, angle) {
+      //   document.getElementById(`servo${servo}Degree`).innerText = angle;
+      //   sendServoPosition(servo, angle);
+      // }
+
       function updateSlider(servo, angle) {
         document.getElementById(`servo${servo}Degree`).innerText = angle;
-        sendServoPosition(servo, angle);
+        // Kirim data ke WebSocket
+        webSocket.send(JSON.stringify({ servo: servo, angle: parseInt(angle) }));
       }
+
 
       function sendServoPosition(servo, angle) {
         webSocket.send(servo + ":" + angle);

@@ -31,6 +31,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length)
       StaticJsonDocument<200> doc;
       DeserializationError error = deserializeJson(doc, message);
       if (!error) {
+        //data dari json
         if (doc.containsKey("servo") && doc.containsKey("angle")) {
           int servoIndex = doc["servo"];
           int angle = doc["angle"];
@@ -48,7 +49,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length)
               servo3.write(angle);
               break;
             case 4:
-              servo4.write(angle);
+              if(message.startsWith(""))
               break;
             case 5:
               servo5.write(angle);
