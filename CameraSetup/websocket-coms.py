@@ -1,7 +1,7 @@
 import websocket  # Tambahkan pustaka websocket-client
 
 # Alamat IP ESP32 (ganti dengan IP ESP32 Anda)
-ESP32_IP = "192.168.137.202"  # Sesuaikan dengan IP ESP32 Anda
+ESP32_IP = "192.168.81.37"  # Sesuaikan dengan IP ESP32 Anda
 ESP32_PORT = 81
 
 def main():

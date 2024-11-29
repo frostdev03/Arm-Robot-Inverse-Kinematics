@@ -18,7 +18,7 @@ extern unsigned long lastPlayTime;
 extern WebSocketsServer webSocket;
 
 // Deklarasi untuk objek servo dan stepper
-extern Servo servo1, servo1b, servo2, servo3, servo4, servo5, servo6;
+extern Servo lowerRight, lowerLeft, centerArm, upperArm, neckGripper, gripper;
 extern AccelStepper stepper;
 
 // Deklarasi fungsi WebSocket

@@ -17,22 +17,20 @@ AccelStepper stepper(motorInterfaceType, stepPin, dirPin);
 WebServer server(80);  // HTTP server pada port 80
 
 // Objek servo
-Servo servo1;   // Lower arm servo 1
-Servo servo1b;  // Lower arm servo 2 (tambahan)
-Servo servo2;
-Servo servo3;
-Servo servo4;
-Servo servo5;
-Servo servo6;
+Servo lowerRight;   // Lower arm servo 1
+Servo lowerLeft;  // Lower arm servo 2 (tambahan)
+Servo centerArm;
+Servo upperArm;
+Servo neckGripper;
+Servo gripper;
 
 // Initial positions for the servos
-int servo1_pos = 0;
-int servo1b_pos = 0;
-int servo2_pos = 0;
-int servo3_pos = 0;
-int servo4_pos = 0;
-int servo5_pos = 0;
-int servo6_pos = 0;
+int lowerRight_pos = 0;
+int lowerLeft_pos = 0;
+int centerArm_pos = 0;
+int upperArm_pos = 0;
+int neckGripper_pos = 0;
+int gripper_pos = 0;
 
 // Constants for recording
 const int MAX_MOTION_STEPS = 100;  // Maximum number of steps that can be recorded
@@ -177,10 +175,10 @@ const char* htmlPage = R"rawliteral(
     </div>
 
     <div>
-      <label for="servo1">Lower Arm: <span id="servo1Degree">0</span>°</label>
+      <label for="lowerRight">Lower Arm: <span id="lowerRightDegree">0</span>°</label>
       <input
         type="range"
-        id="servo1"
+        id="lowerRight"
         min="0"
         max="180"
         value="0"
@@ -189,10 +187,10 @@ const char* htmlPage = R"rawliteral(
     </div>
 
     <div>
-      <label for="servo2">Center Arm: <span id="servo2Degree">0</span>°</label>
+      <label for="centerArm">Center Arm: <span id="centerArmDegree">0</span>°</label>
       <input
         type="range"
-        id="servo2"
+        id="centerArm"
         min="0"
         max="180"
         value="0"
@@ -201,10 +199,10 @@ const char* htmlPage = R"rawliteral(
     </div>
 
     <div>
-      <label for="servo3">Upper Arm: <span id="servo3Degree">0</span>°</label>
+      <label for="upperArm">Upper Arm: <span id="upperArmDegree">0</span>°</label>
       <input
         type="range"
-        id="servo3"
+        id="upperArm"
         min="0"
         max="180"
         value="0"
@@ -213,10 +211,10 @@ const char* htmlPage = R"rawliteral(
     </div>
 
     <div>
-      <label for="servo4">Neck Gripper: <span id="servo4Degree">0</span>°</label>
+      <label for="neckGripper">Neck Gripper: <span id="neckGripperDegree">0</span>°</label>
       <input
         type="range"
-        id="servo4"
+        id="neckGripper"
         min="0"
         max="360"
         value="0"
@@ -225,10 +223,10 @@ const char* htmlPage = R"rawliteral(
     </div>
 
     <div>
-      <label for="servo5">Gripper: <span id="servo5Degree">0</span>°</label>
+      <label for="gripper">Gripper: <span id="gripperDegree">0</span>°</label>
       <input
         type="range"
-        id="servo5"
+        id="gripper"
         min="0"
         max="180"
         value="0"
@@ -237,14 +235,14 @@ const char* htmlPage = R"rawliteral(
     </div>
 
     <div>
-      <label for="servo7">Stepper Motor Speed: <span id="servo7Degree">0</span>°</label>
+      <label for="stepper">Stepper Position: <span id="stepperDegree">0</span>°</label>
       <input
         type="range"
         id="stepper"
         min="0"
         max="360"
         value="0"
-        oninput="updateSlider(7, this.value)"
+        oninput="updateSlider(6, this.value)"
       />
     </div>
 
@@ -261,11 +259,16 @@ const char* htmlPage = R"rawliteral(
 
       // function updateSlider(servo, angle) {
       //   document.getElementById(`servo${servo}Degree`).innerText = angle;
-      //   sendServoPosition(servo, angle);
+      //   // Kirim data ke WebSocket
+      //   webSocket.send(JSON.stringify({ servo: servo, angle: parseInt(angle) }));
       // }
 
       function updateSlider(servo, angle) {
-        document.getElementById(`servo${servo}Degree`).innerText = angle;
+        if (servo === 6) {
+          document.getElementById("stepperDegree").innerText = angle;
+        } else {
+          document.getElementById(`servo${servo}Degree`).innerText = angle;
+        }
         // Kirim data ke WebSocket
         webSocket.send(JSON.stringify({ servo: servo, angle: parseInt(angle) }));
       }
@@ -305,13 +308,12 @@ void handleRoot() {
 }
 
 void moveAllServos() {
-  servo1.write(servo1_pos);
-  servo1b.write(servo1b_pos);
-  servo2.write(servo2_pos);
-  servo3.write(servo3_pos);
-  servo4.write(servo4_pos);
-  servo5.write(servo5_pos);
-  servo6.write(servo6_pos);
+  lowerRight.write(lowerRight_pos);
+  lowerLeft.write(lowerLeft_pos);
+  centerArm.write(centerArm_pos);
+  upperArm.write(upperArm_pos);
+  neckGripper.write(neckGripper_pos);
+  gripper.write(gripper_pos);
 }
 
 void setup() {
@@ -327,12 +329,12 @@ void setup() {
   Serial.println(WiFi.localIP());
 
   // Setup servo
-  servo1.attach(13);   // Lower arm servo 1
-  servo1b.attach(27);  // Lower arm servo 2 (terbalik)
-  servo2.attach(12);   // Center arm
-  servo3.attach(14);   // Upper arm
-  servo4.attach(33);   // Neck gripper
-  servo5.attach(25);   // Gripper
+  lowerRight.attach(13);   // Lower arm 
+  lowerLeft.attach(27);  // Lower arm servo 2 (terbalik)
+  centerArm.attach(12);   // Center arm
+  upperArm.attach(14);   // Upper arm
+  neckGripper.attach(33);   // Neck gripper
+  gripper.attach(25);   // Gripper
 
   moveAllServos();
 
@@ -353,13 +355,12 @@ void setup() {
 
 void recordPosition() {
   if (currentStep < MAX_MOTION_STEPS) {
-    recordedPositions1[currentStep] = servo1_pos;
-    recordedPositions1b[currentStep] = servo1b_pos;
-    recordedPositions2[currentStep] = servo2_pos;
-    recordedPositions3[currentStep] = servo3_pos;
-    recordedPositions4[currentStep] = servo4_pos;
-    recordedPositions5[currentStep] = servo5_pos;
-    recordedPositions6[currentStep] = servo6_pos;
+    recordedPositions1[currentStep] = lowerRight_pos;
+    recordedPositions1b[currentStep] = lowerLeft_pos;
+    recordedPositions2[currentStep] = centerArm_pos;
+    recordedPositions3[currentStep] = upperArm_pos;
+    recordedPositions4[currentStep] = neckGripper_pos;
+    recordedPositions5[currentStep] = gripper_pos;
     currentStep++;
   } else {
     Serial.println("Recording buffer full.");
@@ -369,13 +370,12 @@ void recordPosition() {
 void playRecordedMotion() {
   if (millis() - lastPlayTime > 0) {  // Play motion every 500 ms
     if (playIndex < currentStep) {
-      servo1.write(recordedPositions1[playIndex]);
-      servo1b.write(recordedPositions1b[playIndex]);
-      servo2.write(recordedPositions2[playIndex]);
-      servo3.write(recordedPositions3[playIndex]);
-      servo4.write(recordedPositions4[playIndex]);
-      servo5.write(recordedPositions5[playIndex]);
-      servo6.write(recordedPositions6[playIndex]);
+      lowerRight.write(recordedPositions1[playIndex]);
+      lowerLeft.write(recordedPositions1b[playIndex]);
+      centerArm.write(recordedPositions2[playIndex]);
+      upperArm.write(recordedPositions3[playIndex]);
+      neckGripper.write(recordedPositions4[playIndex]);
+      gripper.write(recordedPositions5[playIndex]);
       playIndex++;
       lastPlayTime = millis();
     } else {
