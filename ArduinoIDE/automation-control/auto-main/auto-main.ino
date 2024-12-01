@@ -3,9 +3,9 @@
 #include <WebServer.h>
 #include <ESP32Servo.h>
 #include <AccelStepper.h>
-#include "WebSocketHandler.h"  // Tambahkan ini
+#include "ws-handler.h"  
 
-const char* ssid = "Setrika";
+const char* ssid = "Kipas Angin";
 const char* password = "11223344";
 
 #define motorInterfaceType 1
@@ -17,12 +17,7 @@ AccelStepper stepper(motorInterfaceType, stepPin, dirPin);
 WebServer server(80);  // HTTP server pada port 80
 
 // Objek servo
-Servo lowerRight;   // Lower arm servo 1
-Servo lowerLeft;  // Lower arm servo 2 (tambahan)
-Servo centerArm;
-Servo upperArm;
-Servo neckGripper;
-Servo gripper;
+Servo lowerRight, lowerLeft, centerArm, upperArm, neckGripper, gripper;
 
 // Initial positions for the servos
 int lowerRight_pos = 0;
@@ -33,7 +28,7 @@ int neckGripper_pos = 0;
 int gripper_pos = 0;
 
 // Constants for recording
-const int MAX_MOTION_STEPS = 100;  // Maximum number of steps that can be recorded
+const int MAX_MOTION_STEPS = 200;  // Maximum number of steps that can be recorded
 
 // Arrays to store recorded positions
 int recordedPositions1[MAX_MOTION_STEPS];
@@ -337,10 +332,17 @@ void setup() {
   gripper.attach(25);   // Gripper
 
   moveAllServos();
-
-  stepper.setCurrentPosition(0);  // Set posisi awal ke 0
-  stepper.setMaxSpeed(500);       // Set kecepatan maksimum motor stepper
-  stepper.setAcceleration(500);   // Set acceleration rate (steps per second^2)
+  
+  // Stepper setup
+  stepper.setCurrentPosition(0);
+  stepper.setMaxSpeed(1000);
+  stepper.setAcceleration(500);
+  
+  pinMode(dirPin, OUTPUT);
+  pinMode(stepPin, OUTPUT);
+  // digitalWrite(dirPin, HIGH);
+  // stepper.setMaxSpeed(1000);
+  // stepper.setAcceleration(500);
 
   // Inisialisasi WebSocket
   initWebSocket();

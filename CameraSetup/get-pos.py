@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-url = 'http://192.168.179.50:81/stream'  # Pastikan Anda menggunakan alamat URL streaming yang benar
+url = 'http://192.168.61.201:81/stream'  # Pastikan Anda menggunakan alamat URL streaming yang benar
 
 # Nilai HSV untuk warna-warna yang ingin dideteksi
 hsv_colors = {
@@ -11,7 +11,7 @@ hsv_colors = {
 }
 
 # Membuka kamera laptop
-cap = cv2.VideoCapture(url)
+cap = cv2.VideoCapture(0)
 
 # Kernel untuk morfologi
 kernel = np.ones((5,5), np.uint8)

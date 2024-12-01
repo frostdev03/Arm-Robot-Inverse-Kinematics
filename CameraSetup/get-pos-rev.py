@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-url = 'http://192.168.13.50:81/stream'  # Pastikan Anda menggunakan URL streaming yang benar
+url = 'http://192.168.61.201:81/stream'  # Pastikan Anda menggunakan URL streaming yang benar
 
 # Nilai HSV untuk warna yang ingin dideteksi
 hsv_colors = {

@@ -31,55 +31,115 @@ def forward_kinematics(angles):
     positions.append((x, y, z))
 
     # Joint 3 (Center arm)
-    z += L3 * np.sin(θ3)
+    z += L3 * np.sin(θ2 + θ3)
     x += L3 * np.cos(θ1) * np.cos(θ2 + θ3)
     y += L3 * np.sin(θ1) * np.cos(θ2 + θ3)
     positions.append((x, y, z))
 
     # Joint 4 (Upper arm)
-    z += L4 * np.sin(θ4)
+    z += L4 * np.sin(θ2 + θ3 + θ4)
     x += L4 * np.cos(θ1) * np.cos(θ2 + θ3 + θ4)
     y += L4 * np.sin(θ1) * np.cos(θ2 + θ3 + θ4)
     positions.append((x, y, z))
 
     # Joint 5 (Neck gripper)
-    z += L5 * np.sin(θ5)
+    z += L5 * np.sin(θ2 + θ3 + θ4 + θ5)
     x += L5 * np.cos(θ1) * np.cos(θ2 + θ3 + θ4 + θ5)
     y += L5 * np.sin(θ1) * np.cos(θ2 + θ3 + θ4 + θ5)
     positions.append((x, y, z))
 
     # Joint 6 (Gripper/End-effector)
-    z += L6 * np.sin(θ6)
+    z += L6 * np.sin(θ2 + θ3 + θ4 + θ5 + θ6)
     x += L6 * np.cos(θ1) * np.cos(θ2 + θ3 + θ4 + θ5 + θ6)
     y += L6 * np.sin(θ1) * np.cos(θ2 + θ3 + θ4 + θ5 + θ6)
     positions.append((x, y, z))
 
     return positions
 
-# Fungsi Objective untuk meminimalkan jarak ke target
-def objective_function(angles, x_target, y_target, z_target):
-    end_effector_position = forward_kinematics(angles)[-1]
-    x, y, z = end_effector_position
-    distance = np.sqrt((x - x_target)**2 + (y - y_target)**2 + (z - z_target)**2)
-    return distance
-
-# Fungsi Inverse Kinematics menggunakan optimisasi
+# Fungsi Inverse Kinematics menggunakan optimisasi canggih
 def inverse_kinematics_6dof(x_target, y_target, z_target):
-    initial_guess = [0, 0, 0, 0, 0, 0]
+    def objective_function(angles):
+        end_effector_position = forward_kinematics(angles)[-1]
+        x, y, z = end_effector_position
+        
+        # Tambahkan penalty yang kompleks
+        distance_penalty = np.sqrt((x - x_target)**2 + (y - y_target)**2 + (z - z_target)**2)
+        
+        # Penalty untuk perubahan sudut yang terlalu besar
+        angle_change_penalty = np.sum(np.abs(np.diff(angles))) * 0.05
+        
+        # Penalty untuk posisi sendi yang tidak natural
+        joint_position_penalty = np.sum(np.abs(np.sin(angles))) * 0.1
+        
+        # Bobot untuk setiap jenis penalty
+        return (
+            distance_penalty + 
+            angle_change_penalty + 
+            joint_position_penalty
+        )
+
+    def workspace_constraints(angles):
+        # Pastikan semua z koordinat tidak negatif
+        positions = forward_kinematics(angles)
+        return min(pos[2] for pos in positions)
+
+    # Metode inisialisasi awal yang lebih baik
+    def generate_initial_guess():
+        return [
+            np.random.uniform(0, 2 * np.pi),   # Base
+            np.random.uniform(0, np.pi),       # Lower arm
+            np.random.uniform(0, np.pi),       # Center arm
+            np.random.uniform(0, np.pi),       # Upper arm
+            np.random.uniform(0, np.pi),       # Neck
+            np.random.uniform(0, np.pi)        # Gripper
+        ]
+
     bounds = [
         (0, 2 * np.pi),  # Base
         (0, np.pi),      # Lower arm
         (0, np.pi),      # Center arm
         (0, np.pi),      # Upper arm
-        (0, 2 * np.pi),  # Neck
+        (0, np.pi),      # Neck
         (0, np.pi)       # Gripper
     ]
-    result = minimize(objective_function, initial_guess, args=(x_target, y_target, z_target), bounds=bounds)
 
-    if result.success:
-        return result.x
+    # Coba beberapa kali dengan initial guess berbeda
+    best_result = None
+    best_distance = float('inf')
+
+    for _ in range(10):  # Coba 10 kali dengan initial guess berbeda
+        initial_guess = generate_initial_guess()
+        
+        try:
+            result = minimize(
+                objective_function, 
+                initial_guess, 
+                method='SLSQP',  # Metode optimasi yang lebih baik
+                bounds=bounds,
+                constraints={'type': 'ineq', 'fun': workspace_constraints}
+            )
+
+            if result.success:
+                # Hitung jarak ke target
+                end_pos = forward_kinematics(result.x)[-1]
+                distance = np.sqrt(
+                    (end_pos[0] - x_target)**2 + 
+                    (end_pos[1] - y_target)**2 + 
+                    (end_pos[2] - z_target)**2
+                )
+
+                # Pilih solusi dengan jarak paling dekat
+                if distance < best_distance:
+                    best_result = result
+                    best_distance = distance
+
+        except Exception as e:
+            print(f"Optimasi gagal: {e}")
+
+    if best_result and best_result.success:
+        return best_result.x
     else:
-        raise ValueError("Tidak ditemukan solusi")
+        raise ValueError("Tidak dapat menemukan solusi inverse kinematics")
 
 # Fungsi untuk menggambar posisi lengan robot
 def plot_arm(angles, x_target, y_target, z_target):
@@ -101,7 +161,7 @@ def plot_arm(angles, x_target, y_target, z_target):
     plt.show()
 
 # Target posisi dalam 3D
-x_target, y_target, z_target = 50, 50, 0  # Misalnya target dengan z = 0
+x_target, y_target, z_target = 50, 30, 0  # Misalnya target dengan z = 0
 
 # Menyelesaikan inverse kinematics dan menampilkan hasil
 try:
@@ -123,10 +183,10 @@ try:
     print(f"Error in Z: {error_z:.2f} cm")
 
     # Validasi apakah error cukup kecil untuk pick (Z error < 2 cm)
-    if error_z < 2:  # Toleransi error Z lebih kecil dari 2 cm
-        print("End-effector can reach the target!")
+    if error_z < 3:  # Toleransi error Z lebih kecil dari 2 cm
+        print("End-effector mencapai target!")
     else:
-        print("End-effector cannot reach the target.")
+        print("End-effector gagal mencapai target.")
 
     plot_arm([theta1, theta2, theta3, theta4, theta5, theta6], x_target, y_target, z_target)
 except ValueError as e:
