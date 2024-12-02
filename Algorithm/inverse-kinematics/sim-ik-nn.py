@@ -5,6 +5,42 @@ from tensorflow.keras.layers import Dense
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
+# Panjang segmen lengan (cm), memperhatikan dimensi base
+L1 = 7   # Jarak dari titik tengah ke tepi base
+L2 = 24  # Lower arm
+L3 = 17  # Center arm
+L4 = 11  # Upper arm
+L5 = 2   # Neck gripper
+L6 = 15   # Gripper
+base_thickness = 20  # Ketebalan base (cm)
+
+# Resolusi kamera
+camera_resolution_x = 640
+camera_resolution_y = 480
+
+# Titik tengah kamera (pusat)
+camera_center_x = camera_resolution_x / 2
+camera_center_y = camera_resolution_y / 2
+
+# Dimensi ruang kerja robot (cm)
+physical_workspace_x = 80
+physical_workspace_y = 80
+
+# Hitung skala
+scale_x = physical_workspace_x / camera_resolution_x
+scale_y = physical_workspace_y / camera_resolution_y
+
+# Fungsi untuk mengubah koordinat kamera menjadi koordinat fisik
+def camera_to_physical(x_camera, y_camera):
+    x_physical = (x_camera - camera_center_x) * scale_x
+    y_physical = (y_camera - camera_center_y) * scale_y
+
+    # Validasi agar tetap dalam rentang ruang kerja (0 - 80 cm)
+    x_physical = max(0, min(x_physical, physical_workspace_x))
+    y_physical = max(0, min(y_physical, physical_workspace_y))
+
+    return x_physical, y_physical
+
 # Fungsi untuk forward kinematics
 def forward_kinematics(angles):
     θ1, θ2, θ3, θ4, θ5, θ6 = angles
@@ -86,7 +122,7 @@ model.add(Dense(6))  # Output layer (θ1, θ2, θ3, θ4, θ5, θ6)
 model.compile(optimizer='adam', loss='mse')
 
 # Train the model
-model.fit(X_train, y_train, epochs=50, batch_size=32)
+model.fit(X_train, y_train, epochs=100, batch_size=32)
 
 # Evaluate the model
 loss = model.evaluate(X_test, y_test)
@@ -96,10 +132,12 @@ print(f'Model Loss: {loss}')
 x_camera = 210
 y_camera = 160
 x_target, y_target = camera_to_physical(x_camera, y_camera)
+print(f"Converted Camera Coordinates to Physical: x_target={x_target}, y_target={y_target}")
+
 z_target = 10  # Example height
 
-predicted_angles = model.predict([[x_target, y_target, z_target]])
-print("Predicted Angles:", predicted_angles)
+predicted_angles = model.predict(np.array([[x_target, y_target, z_target]]))
+print(f"Predicted Angles: {predicted_angles}")
 
 # Visualize the predicted angles with forward kinematics
 angles = predicted_angles.flatten()

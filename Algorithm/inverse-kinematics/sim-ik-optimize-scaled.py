@@ -33,9 +33,9 @@ def camera_to_physical(x_camera, y_camera):
     x_physical = (x_camera - camera_center_x) * scale_x
     y_physical = (y_camera - camera_center_y) * scale_y
 
-    # Validasi agar tetap dalam rentang ruang kerja (0 - 80 cm)
-    x_physical = max(0, min(x_physical, physical_workspace_x))
-    y_physical = max(0, min(y_physical, physical_workspace_y))
+    # # Validasi agar tetap dalam rentang ruang kerja (0 - 80 cm)
+    # x_physical = max(0, min(x_physical, physical_workspace_x))
+    # y_physical = max(0, min(y_physical, physical_workspace_y))
 
     return x_physical, y_physical
 
@@ -43,7 +43,7 @@ def camera_to_physical(x_camera, y_camera):
 # Fungsi Forward Kinematics
 def forward_kinematics(angles):
     θ1, θ2, θ3, θ4, θ5, θ6 = angles
-    x, y, z = 0, 0, base_thickness
+    x, y, z = -40, 0, base_thickness
     positions = [(x, y, z)]
 
     # Base rotation (L1, hanya rotasi di bidang X-Y)
@@ -85,22 +85,31 @@ def forward_kinematics(angles):
 def inverse_kinematics_6dof(x_target, y_target, z_target):
     def objective_function(angles):
         end_effector_position = forward_kinematics(angles)[-1]
+        print(f"Testing angles: {angles}, position: {end_effector_position}")
         x, y, z = end_effector_position
         distance_penalty = np.sqrt((x - x_target)**2 + (y - y_target)**2 + (z - z_target)**2)
-        return distance_penalty
+        
+        if z < 0:
+            z_penalty = np.abs(z)  # Penalti proporsional dengan nilai negatif z
+        else:
+            z_penalty = 0
+        
+        return distance_penalty + z_penalty * 10  # Penalti lebih besar jika z < 0
+        # return distance_penalty
 
     # Batasan sudut untuk masing-masing motor
     bounds = [
-        (0, 2 * np.pi),           # θ1 (base rotasi 360°)
-        (0, np.pi / 2),           # θ2 (lower arm)
-        (-np.pi / 2, np.pi / 2),  # θ3 (center arm)
-        (-np.pi / 2, np.pi / 2),  # θ4 (upper arm)
-        (0, L5),                  # L5 (linear motion di z)
-        (-np.pi / 6, np.pi / 6)   # θ6 (gripper)
+        (0, 2 * np.pi),         # θ1 (base rotation)
+        (-np.pi / 2, np.pi / 2),# θ2 (lower arm)
+        (-np.pi / 2, np.pi / 2),# θ3 (center arm)
+        (-np.pi / 2, np.pi / 2),# θ4 (upper arm)
+        (0, L5),                # L5
+        (-np.pi / 6, np.pi / 6) # θ6
     ]
 
     initial_guess = [np.pi / 4] * 5 + [L5 / 2]  # Tambahkan L5 sebagai tebakan awal
-    result = minimize(objective_function, initial_guess, bounds=bounds, method='SLSQP')
+    # initial_guess = [np.pi / 4, np.pi / 4, np.pi / 4, np.pi / 4, L5 / 2, 0]  # Anggap semua sudut 45 derajat, L5 di tengah
+    result = minimize(objective_function, initial_guess, bounds=bounds, method='Powell')
 
     if result.success:
         return result.x
@@ -116,8 +125,8 @@ def plot_arm(angles, x_target, y_target, z_target):
     ax = fig.add_subplot(111, projection='3d')
     ax.plot(x_coords, y_coords, z_coords, '-o', markersize=10, lw=3, label="Robot Arm")
     ax.scatter(x_target, y_target, z_target, color='red', s=100, label="Target Location")
-    ax.set_xlim([0, 80])
-    ax.set_ylim([0, 80])
+    ax.set_xlim([-40, 40])
+    ax.set_ylim([-40, 40])
     ax.set_zlim([0, 80])
     ax.set_xlabel("X Position (cm)")
     ax.set_ylabel("Y Position (cm)")
@@ -127,8 +136,8 @@ def plot_arm(angles, x_target, y_target, z_target):
     plt.show()
 
 # Input dari kamera
-x_camera = 210
-y_camera = 160
+x_camera = 30
+y_camera = 40
 
 # Konversi ke koordinat fisik
 x_target, y_target = camera_to_physical(x_camera, y_camera)
