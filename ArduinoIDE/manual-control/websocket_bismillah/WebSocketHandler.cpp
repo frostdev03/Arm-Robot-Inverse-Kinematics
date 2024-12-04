@@ -24,12 +24,12 @@ void initWebSocket() {
 }
 
 void updateServoPositions() {
-  lowerRight.write(servoPositions[0]);       // Servo 1 (base)
-  lowerLeft.write(180 - servoPositions[0]);  // Servo 2 (lower arm)
-  centerArm.write(servoPositions[1]);        // Servo 3 (center arm)
-  upperArm.write(servoPositions[2]);         // Servo 4 (upper arm)
-  neckGripper.write(servoPositions[3]);      // Servo 5 (neck gripper)
-  gripper.write(servoPositions[4]);          // Servo 6 (gripper)
+  lowerRight.write(servoPositions[0]);       
+  lowerLeft.write(180 - servoPositions[0]);  
+  centerArm.write(servoPositions[1]);        
+  upperArm.write(servoPositions[2]);         
+  neckGripper.write(servoPositions[3]);      
+  gripper.write(servoPositions[4]);          
 
   Serial.println("Servos Updated!");
 }
@@ -41,6 +41,51 @@ void updateStepperPosition(int targetPosition) {
   Serial.println(targetPosition);
 }
 
+// void parseAndSetServoPositions(String message) {
+//   if (message[0] != '#') {
+//     Serial.println("Error: Data must start with '#'.");
+//     return;
+//   }
+
+//   // Parsing data based on delimiter #
+//   int servoIndex = 0;
+//   int startIndex = 1;  // Start after the first '#'
+
+//   while (servoIndex <= MAX_SERVOS) {
+//     int nextIndex = message.indexOf('#', startIndex);  // Find the next '#'
+//     String value = message.substring(startIndex, nextIndex);
+
+//     if (nextIndex == -1) break;  // No more '#' found
+
+//     if (servoIndex == MAX_SERVOS) {
+//       // Stepper motor kontrol
+//       int targetPosition = value.toInt();
+//       updateStepperPosition(targetPosition);
+//     } else {
+//       servoPositions[servoIndex] = value.toInt();
+//     }
+
+//     String servoValue = message.substring(startIndex, nextIndex);  // Extract value
+//     servoPositions[servoIndex] = servoValue.toInt();               // Convert to integer
+//     servoIndex++;
+//     startIndex = nextIndex + 1;  // Update the start index
+//   }
+
+//   // // Log received servo positions
+//   // Serial.println("Updating Positions:");
+//   // for (int i = 0; i < servoIndex; i++) {
+//   //   Serial.printf("Servo %d: %d\n", i + 1, servoPositions[i]);
+//   // }
+
+//   // Log received positions
+//   Serial.println("Updating Servos:");
+//   for (int i = 0; i < MAX_SERVOS; i++) {
+//     Serial.printf("Servo %d: %d\n", i + 1, servoPositions[i]);
+//   }
+
+//   // Update servos
+//   updateServoPositions();
+// }
 
 void parseAndSetServoPositions(String message) {
   if (message[0] != '#') {
@@ -48,45 +93,43 @@ void parseAndSetServoPositions(String message) {
     return;
   }
 
-  // Parsing data based on delimiter #
-  int servoIndex = 0;
   int startIndex = 1;  // Start after the first '#'
+  int nextIndex = message.indexOf('#', startIndex);  // Find the next '#'
 
-  while (servoIndex <= MAX_SERVOS) {
-    int nextIndex = message.indexOf('#', startIndex);  // Find the next '#'
-    String value = message.substring(startIndex, nextIndex);
+  if (nextIndex == -1) {
+    Serial.println("Error: Invalid message format.");
+    return;
+  }
 
+  // Step 1: Parse Stepper Motor Position
+  String stepperValue = message.substring(startIndex, nextIndex);
+  int targetPosition = stepperValue.toInt();
+  updateStepperPosition(targetPosition);
+
+  // Step 2: Parse Servo Positions
+  startIndex = nextIndex + 1;  // Update the start index
+  int servoIndex = 0;
+
+  while (servoIndex < MAX_SERVOS) {
+    nextIndex = message.indexOf('#', startIndex);  // Find the next '#'
     if (nextIndex == -1) break;  // No more '#' found
 
-    if (servoIndex == MAX_SERVOS) {
-      // Stepper motor kontrol
-      int targetPosition = value.toInt();
-      updateStepperPosition(targetPosition);
-    } else {
-      servoPositions[servoIndex] = value.toInt();
-    }
-
-    String servoValue = message.substring(startIndex, nextIndex);  // Extract value
-    servoPositions[servoIndex] = servoValue.toInt();               // Convert to integer
+    String servoValue = message.substring(startIndex, nextIndex);
+    servoPositions[servoIndex] = servoValue.toInt();
     servoIndex++;
     startIndex = nextIndex + 1;  // Update the start index
   }
 
-  // // Log received servo positions
-  // Serial.println("Updating Positions:");
-  // for (int i = 0; i < servoIndex; i++) {
-  //   Serial.printf("Servo %d: %d\n", i + 1, servoPositions[i]);
-  // }
-
   // Log received positions
-  Serial.println("Updating Servos:");
-  for (int i = 0; i < MAX_SERVOS; i++) {
+  Serial.printf("Stepper: %d\n", targetPosition);
+  for (int i = 0; i < servoIndex; i++) {
     Serial.printf("Servo %d: %d\n", i + 1, servoPositions[i]);
   }
 
   // Update servos
   updateServoPositions();
 }
+
 
 void handleCommand(String command) {
   if (command == "record") {

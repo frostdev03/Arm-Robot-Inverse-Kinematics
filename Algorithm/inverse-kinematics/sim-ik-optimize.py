@@ -161,7 +161,7 @@ def plot_arm(angles, x_target, y_target, z_target):
     plt.show()
 
 # Target posisi dalam 3D
-x_target, y_target, z_target = 50, 30, 0  # Misalnya target dengan z = 0
+x_target, y_target, z_target = -36, -33, 0  # Misalnya target dengan z = 0
 
 # Menyelesaikan inverse kinematics dan menampilkan hasil
 try:
