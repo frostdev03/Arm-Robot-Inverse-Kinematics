@@ -83,7 +83,7 @@ def inverse_kinematics_6dof(x_target, y_target, z_target):
 # Fungsi utama untuk komunikasi WebSocket
 def main():
     # Alamat IP ESP32
-    ESP32_IP = "192.168.61.73"  # Ganti dengan IP ESP32 Anda
+    ESP32_IP = "192.168.137.131"  # Ganti dengan IP ESP32 Anda
     ESP32_PORT = 81
 
     # URL WebSocket ESP32

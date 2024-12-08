@@ -4,12 +4,12 @@
 #include <AccelStepper.h>
 #include "WebSocketHandler.h"  // Tambahkan ini
 
-const char* ssid = "Kipas Angin";
+const char* ssid = "Setrika";
 const char* password = "11223344";
 
 #define motorInterfaceType 1
 #define dirPin 26  // Pin untuk direction
-#define stepPin 35
+#define stepPin 32
 
 AccelStepper stepper(motorInterfaceType, stepPin, dirPin);
 
@@ -46,12 +46,12 @@ int recordedPositions5[MAX_MOTION_STEPS];
 int recordedPositions6[MAX_MOTION_STEPS];
 
 // Recording variables
-bool isRecording = false;
-bool isPlaying = false;
-int currentStep = 0;
-int playIndex = 0;
+// isRecording = false;
+// isPlaying = false;
+// currentStep = 0;
+// playIndex = 0;
 
-unsigned long lastPlayTime = 0;
+// lastPlayTime = 0;
 
 // Halaman HTML
 const char* htmlPage = R"rawliteral(
@@ -343,44 +343,44 @@ void setup() {
   server.begin();
 }
 
-void recordPosition() {
-  if (currentStep < MAX_MOTION_STEPS) {
-    recordedPositions1[currentStep] = servo1_pos;
-    recordedPositions1b[currentStep] = servo1b_pos;
-    recordedPositions2[currentStep] = servo2_pos;
-    recordedPositions3[currentStep] = servo3_pos;
-    recordedPositions4[currentStep] = servo4_pos;
-    recordedPositions5[currentStep] = servo5_pos;
-    recordedPositions6[currentStep] = servo6_pos;
-    currentStep++;
-  } else {
-    Serial.println("Recording buffer full.");
-  }
-}
+// void recordPosition() {
+//   if (currentStep < MAX_MOTION_STEPS) {
+//     recordedPositions1[currentStep] = servo1_pos;
+//     recordedPositions1b[currentStep] = servo1b_pos;
+//     recordedPositions2[currentStep] = servo2_pos;
+//     recordedPositions3[currentStep] = servo3_pos;
+//     recordedPositions4[currentStep] = servo4_pos;
+//     recordedPositions5[currentStep] = servo5_pos;
+//     recordedPositions6[currentStep] = servo6_pos;
+//     currentStep++;
+//   } else {
+//     Serial.println("Recording buffer full.");
+//   }
+// }
 
-void playRecordedMotion() {
-  if (millis() - lastPlayTime > 0) {  // Play motion every 500 ms
-    if (playIndex < currentStep) {
-      servo1.write(recordedPositions1[playIndex]);
-      servo1b.write(recordedPositions1b[playIndex]);
-      servo2.write(recordedPositions2[playIndex]);
-      servo3.write(recordedPositions3[playIndex]);
-      servo4.write(recordedPositions4[playIndex]);
-      servo5.write(recordedPositions5[playIndex]);
-      servo6.write(recordedPositions6[playIndex]);
-      playIndex++;
-      lastPlayTime = millis();
-    } else {
-      isPlaying = false;  // Stop playing when done
-    }
-  }
-}
+// void playRecordedMotion() {
+//   if (millis() - lastPlayTime > 0) {  // Play motion every 500 ms
+//     if (playIndex < currentStep) {
+//       servo1.write(recordedPositions1[playIndex]);
+//       servo1b.write(recordedPositions1b[playIndex]);
+//       servo2.write(recordedPositions2[playIndex]);
+//       servo3.write(recordedPositions3[playIndex]);
+//       servo4.write(recordedPositions4[playIndex]);
+//       servo5.write(recordedPositions5[playIndex]);
+//       servo6.write(recordedPositions6[playIndex]);
+//       playIndex++;
+//       lastPlayTime = millis();
+//     } else {
+//       isPlaying = false;  // Stop playing when done
+//     }
+//   }
+// }
 
 void loop() {
   webSocket.loop();  // WebSocket loop
   server.handleClient();
   stepper.run();  
 
-  if (isRecording) recordPosition();
-  if (isPlaying) playRecordedMotion();
+  // if (isRecording) recordPosition();
+  // if (isPlaying) playRecordedMotion();
 }

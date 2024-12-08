@@ -1,14 +1,15 @@
 import cv2
 import numpy as np
 
-url = 'http://192.168.61.201:81/stream'  # Pastikan Anda menggunakan URL streaming yang benar
+# URL streaming dari kamera ESP32-CAM
+url = 'http://192.168.137.74:81/stream'
 
-# Nilai HSV untuk warna yang ingin dideteksi
+# Definisi warna dalam format HSV
 hsv_colors = {
-    'Blue': ([56, 40, 102], [118, 192, 255]),
-    'Yellow': ([10, 20, 187], [255, 255, 255]),
-    'Red': ([111, 37, 81], [255, 255, 255]),
-    'Green': ([20, 41, 136], [255, 255, 255])
+    'Blue': ([66, 52, 67], [255, 255, 255]),
+    'Yellow': ([0, 51, 123], [51, 255, 255]),
+    'Red': ([0, 63, 88], [255, 255, 255]),
+    'Green': ([0, 95, 53], [104, 255, 255])
 }
 
 # Membuka kamera
@@ -31,7 +32,7 @@ while True:
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     
     # Deteksi tepi dengan Canny
-    edges = cv2.Canny(blurred, 50, 150)
+    edges = cv2.Canny(blurred, 0, 100)
     edges = cv2.dilate(edges, kernel, iterations=1)
     edges = cv2.erode(edges, kernel, iterations=1)
 
@@ -43,11 +44,11 @@ while True:
 
     for contour in contours:
         area = cv2.contourArea(contour)
-        if area > 1000:
+        if area > 200:
             perimeter = cv2.arcLength(contour, True)
             approx = cv2.approxPolyDP(contour, 0.02 * perimeter, True)
 
-            if len(approx) == 4:  # Bentuk persegi panjang
+            if len(approx) == 4:  # Bentuk persegi
                 x, y, w, h = cv2.boundingRect(approx)
                 aspect_ratio = float(w) / h
 
@@ -68,7 +69,7 @@ while True:
                         mask_area = cv2.countNonZero(mask)
 
                         # Jika area warna >50%, anggap sebagai warna kubus
-                        if mask_area > (w * h) * 0.5:
+                        if mask_area >= (w * h) * 0.5:
                             cube_color = color_name
                             break
 

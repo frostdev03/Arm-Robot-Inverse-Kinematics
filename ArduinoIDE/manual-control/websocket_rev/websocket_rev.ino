@@ -4,12 +4,12 @@
 #include <ESP32Servo.h>
 #include <AccelStepper.h>
 
-const char* ssid = "Kipas Angin";
+const char* ssid = "Setrika";
 const char* password = "11223344";
 
 #define motorInterfaceType 1
 #define dirPin 26  // Pin for direction
-#define stepPin 23
+#define stepPin 32
 
 unsigned long lastPlayTime = 0;
 

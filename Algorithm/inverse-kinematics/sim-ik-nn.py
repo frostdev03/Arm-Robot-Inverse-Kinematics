@@ -89,8 +89,7 @@ def generate_dataset(num_samples=1000):
     
     for _ in range(num_samples):
         # Randomly generate angles within valid ranges
-        angles = np.random.uniform([0, 0, -np.pi/2, -np.pi/2, 0, -np.pi/6], 
-                                   [2*np.pi, np.pi/2, np.pi/2, np.pi/2, L5, np.pi/6])
+        angles = np.random.uniform([0, 0, -np.pi/2, -np.pi/2, 0, -np.pi/6], [2*np.pi, np.pi/2, np.pi/2, np.pi/2, L5, np.pi/6])
         
         # Get end-effector position using forward kinematics
         position = forward_kinematics(angles)[-1]

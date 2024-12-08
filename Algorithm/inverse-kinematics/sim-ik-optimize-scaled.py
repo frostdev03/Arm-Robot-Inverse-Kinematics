@@ -220,8 +220,8 @@ def plot_arm(angles, x_target, y_target, z_target):
     plt.show()
 
 # Input dari kamera
-x_camera = 210
-y_camera = 65
+x_camera = 329
+y_camera = 280
 
 # Konversi ke koordinat fisik
 x_target, y_target = camera_to_physical(x_camera, y_camera)

@@ -1,18 +1,19 @@
 import cv2
 import numpy as np
 
-# url = 'http://192.168.179.50:81/stream'  # Pastikan Anda menggunakan URL streaming yang benar
+# URL streaming dari kamera ESP32-CAM
+url = 'http://192.168.137.74:81/stream'
 
-# Nilai HSV untuk warna yang ingin dideteksi
+# Definisi warna dalam format HSV
 hsv_colors = {
-    'Blue': ([56, 40, 102], [118, 192, 255]),
-    'Yellow': ([10, 20, 187], [255, 255, 255]),
-    'Red': ([111, 37, 81], [255, 255, 255]),
-    'Green': ([20, 41, 136], [255, 255, 255])
+    'Blue': ([66, 52, 67], [255, 255, 255]),
+    'Yellow': ([0, 51, 123], [51, 255, 255]),
+    'Red': ([0, 63, 88], [255, 255, 255]),
+    'Green': ([0, 95, 53], [104, 255, 255])
 }
 
 # Membuka kamera
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(url)
 
 # Kernel untuk morfologi
 kernel = np.ones((5, 5), np.uint8)

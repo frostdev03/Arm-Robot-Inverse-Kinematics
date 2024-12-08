@@ -1,7 +1,9 @@
 import cv2
 import numpy as np
 
-cap = cv2.VideoCapture(0)
+url = 'http://192.168.129.201:81/stream'  # Pastikan Anda menggunakan URL streaming yang benar
+
+cap = cv2.VideoCapture(url)
 
 cv2.namedWindow("live transmission", cv2.WINDOW_AUTOSIZE)
 cv2.namedWindow("HSV transmission", cv2.WINDOW_AUTOSIZE)

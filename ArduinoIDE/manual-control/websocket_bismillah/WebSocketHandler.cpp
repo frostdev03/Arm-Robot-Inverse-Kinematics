@@ -6,7 +6,7 @@
 
 // Servo positions array
 #define MAX_SERVOS 6
-int servoPositions[MAX_SERVOS] = { 0, 0, 0, 0, 0, 0 };
+int servoPositions[MAX_SERVOS] = { 0, 0, 0, 0, 0, 0};
 
 // Recording variables
 bool isRecording = false;
@@ -24,12 +24,12 @@ void initWebSocket() {
 }
 
 void updateServoPositions() {
-  lowerRight.write(servoPositions[0]);       
-  lowerLeft.write(180 - servoPositions[0]);  
-  centerArm.write(servoPositions[1]);        
-  upperArm.write(servoPositions[2]);         
-  neckGripper.write(servoPositions[3]);      
-  gripper.write(servoPositions[4]);          
+  servo1.write(servoPositions[0]);       
+  servo1b.write(180 - servoPositions[0]);  
+  servo2.write(servoPositions[1]);        
+  servo3.write(servoPositions[2]);         
+  servo4.write(servoPositions[3]);      
+  servo5.write(servoPositions[4]);          
 
   Serial.println("Servos Updated!");
 }
@@ -175,20 +175,20 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length)
           // Kontrol servo sesuai dengan pesan JSON
           switch (servoIndex) {
             case 1:
-              lowerRight.write(angle);
-              lowerLeft.write(180 - angle);
+              servo1.write(angle);
+              servo1b.write(180 - angle);
               break;
             case 2:
-              centerArm.write(angle);
+              servo2.write(angle);
               break;
             case 3:
-              upperArm.write(angle);
+              servo3.write(angle);
               break;
             case 4:
-              neckGripper.write(angle);
+              servo4.write(angle);
               break;
             case 5:
-              gripper.write(angle);
+              servo5.write(angle);
               break;
             case 7:
               stepper.moveTo(angle);
