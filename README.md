@@ -13,7 +13,7 @@ This repository showcases a robotic arm project controlled by an ESP-32 microcon
 - ESP-32 microcontroller
 - Servos and stepper motors
 - Power supply (suitable for servo operation)
-- Optional: Camera for object detection
+- Camera for object detection
 
 ## Software Requirements
 
@@ -46,4 +46,4 @@ This repository showcases a robotic arm project controlled by an ESP-32 microcon
 <img src="https://github.com/user-attachments/assets/2f7f13a1-ddfe-4c00-a1a9-3f03bd8d3ddd" alt="Screenshot of robot control interface" width="500">
 <img src="https://github.com/user-attachments/assets/037d5610-ae41-44bc-a78f-7c18993b74a0" alt="Screenshot of object detection" width="500">
 
-
+Cheers
