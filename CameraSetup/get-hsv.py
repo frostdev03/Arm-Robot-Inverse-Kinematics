@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-url = 'http://192.168.129.201:81/stream'  # Pastikan Anda menggunakan URL streaming yang benar
+url = 'http://192.168.137.198:81/stream'  # Pastikan Anda menggunakan URL streaming yang benar
 
 cap = cv2.VideoCapture(url)
 

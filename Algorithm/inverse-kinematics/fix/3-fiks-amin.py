@@ -7,18 +7,12 @@ import time
 # URL streaming dari kamera ESP32-CAM
 url = 'http://192.168.129.201:81/stream'
 
-LS: 34
-LV:114
-UH: 255
-US: 97
-W: 197
-
 # Definisi warna dalam format HSV
 hsv_colors = {
-    'Blue': ([66, 52, 67], [255, 255, 255]),
+    'Green': ([40, 50, 50], [80, 255, 255]),
+    'Blue': ([0, 102, 97], [255, 255, 255]),
     # 'Yellow': ([0, 51, 123], [51, 255, 255]),
-    'Red': ([0, 34, 114], [255, 97, 197]),
-    'Green': ([0, 95, 53], [104, 255, 255])
+    'Red': ([0, 34, 114], [255, 97, 197])
 }
 
 # Panjang segmen lengan (cm)
@@ -75,17 +69,41 @@ def inverse_kinematics_5dof(x_target, y_target, z_target):
     #         np.random.uniform(0, L5)           # Gripper (linear)
     #     ]
     
+    # def generate_initial_guess():
+    #     return [np.pi / 2, np.pi / 4, np.pi / 4, np.pi / 4, L5 / 2]  # Contoh nilai tetap
+    
+    # def generate_initial_guess():
+    #     return [0, np.pi/4, np.pi/4, np.pi/4, 0]  # Sudut awal dalam radian
+
+    # def generate_initial_guess():
+    #     return [np.pi / 4] * 4 + [L5 / 2]
+    
     def generate_initial_guess():
-        return [np.pi / 2, np.pi / 4, np.pi / 4, np.pi / 4, L5 / 2]  # Contoh nilai tetap
+        θ1 = np.pi / 6 + np.random.uniform(-np.pi/12, np.pi/12)
+        θ2 = np.pi / 6 + np.random.uniform(-np.pi/12, np.pi/12)
+        θ3 = np.pi / 8 + np.random.uniform(-np.pi/16, np.pi/16)
+        θ4 = np.pi / 8 + np.random.uniform(-np.pi/16, np.pi/16)
+        θ5 = L5 / 2 + np.random.uniform(-1, 1)
+        return [θ1, θ2, θ3, θ4, θ5]
 
 
+
+    # bounds = [
+    #     (0, 2 * np.pi),  # Base
+    #     (0, np.pi),      # Lower arm
+    #     (0, np.pi),      # Center arm
+    #     (0, np.pi),      # Upper arm
+    #     (0, L5)          # Gripper
+    # ]
+    
     bounds = [
-        (0, 2 * np.pi),  # Base
-        (0, np.pi),      # Lower arm
-        (0, np.pi),      # Center arm
-        (0, np.pi),      # Upper arm
-        (0, L5)          # Gripper (linear, L5)
+        (-np.pi, np.pi),  # Base
+        (0, np.pi),       # Lower arm
+        (0, np.pi),       # Center arm
+        (0, np.pi),       # Upper arm
+        (0, L5)           # Gripper
     ]
+
 
     # Optimasi untuk mendapatkan sudut terbaik
     best_result = None
