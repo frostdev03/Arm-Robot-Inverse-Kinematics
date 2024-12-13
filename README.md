@@ -29,6 +29,12 @@ This repository showcases a robotic arm project controlled by an ESP-32 microcon
    - Install required Python packages if simulations are used.
 3. **Run the System:** Power on the ESP-32 and control the arm using the provided control mechanisms.
 
+## Main Program
+
+- websocket_bismillah: Code for ESP32.
+- accessing_camera: Code for ESP32-CAM.
+- main: Main program for algorithm.
+
 ## Usage
 
 - Use the algorithm to calculate arm positions based on desired end-effector coordinates.
