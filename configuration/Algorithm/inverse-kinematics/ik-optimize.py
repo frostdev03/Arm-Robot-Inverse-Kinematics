@@ -4,11 +4,11 @@ import websocket
 from scipy.optimize import minimize
 
 # URL streaming dari kamera ESP32-CAM
-url = 'http://192.168.61.201:81/stream'  # Ganti dengan URL streaming yang benar
+url = 'http://192.168.137.134:81/stream'
 
 # Nilai HSV untuk warna yang ingin dideteksi
 hsv_colors = {
-    'Blue': ([56, 40, 102], [118, 192, 255]),
+    'Blue': ([0, 97, 91], [255, 255, 255]),
     'Yellow': ([10, 20, 187], [255, 255, 255]),
     'Red': ([111, 37, 81], [255, 255, 255]),
     'Green': ([20, 41, 136], [255, 255, 255])
@@ -171,7 +171,7 @@ def inverse_kinematics_6dof(x_target, y_target, z_target):
 # Fungsi utama untuk komunikasi WebSocket dan deteksi warna
 def main():
     # Alamat IP ESP32
-    ESP32_IP = "192.168.61.73"  # Ganti dengan IP ESP32 Anda
+    ESP32_IP = "192.168.137.214"
     ESP32_PORT = 81
 
     # URL WebSocket ESP32

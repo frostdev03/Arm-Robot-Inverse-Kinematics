@@ -5,12 +5,12 @@ import websocket
 import time
 
 # URL streaming dari kamera ESP32-CAM
-url = 'http://192.168.129.201:81/stream'
+url = 'http://192.168.137.134:81/stream'
 
 # Definisi warna dalam format HSV
 hsv_colors = {
     'Green': ([40, 50, 50], [80, 255, 255]),
-    'Blue': ([0, 102, 97], [255, 255, 255]),
+    'Blue': ([0, 63, 81], [255, 255, 255]),
     # 'Yellow': ([0, 51, 123], [51, 255, 255]),
     'Red': ([0, 34, 114], [255, 97, 197])
 }
@@ -85,8 +85,6 @@ def inverse_kinematics_5dof(x_target, y_target, z_target):
         θ4 = np.pi / 8 + np.random.uniform(-np.pi/16, np.pi/16)
         θ5 = L5 / 2 + np.random.uniform(-1, 1)
         return [θ1, θ2, θ3, θ4, θ5]
-
-
 
     # bounds = [
     #     (0, 2 * np.pi),  # Base
@@ -177,7 +175,7 @@ def forward_kinematics(angles):
     return positions
 
 def main():
-    ESP32_IP = "192.168.129.37"
+    ESP32_IP = "192.168.137.214"
     ESP32_PORT = 81
     ws_url = f"ws://{ESP32_IP}:{ESP32_PORT}/"
 

@@ -5,14 +5,14 @@ import websocket
 import time
 
 # URL streaming dari kamera ESP32-CAM
-url = 'http://192.168.137.74:81/stream'
+url = 'http://192.168.137.134:81/stream'
 
 # Definisi warna dalam format HSV
 hsv_colors = {
-    'Blue': ([66, 52, 67], [255, 255, 255]),
-    'Yellow': ([0, 51, 123], [51, 255, 255]),
-    'Red': ([0, 63, 88], [255, 255, 255]),
-    'Green': ([0, 95, 53], [104, 255, 255])
+    'Green': ([40, 50, 50], [80, 255, 255]),
+    'Blue': ([0, 63, 81], [255, 255, 255]),
+    # 'Yellow': ([0, 51, 123], [51, 255, 255]),
+    'Red': ([0, 34, 114], [255, 97, 197])
 }
 
 # Panjang segmen lengan (cm)
@@ -37,135 +37,6 @@ def camera_to_physical(x_camera, y_camera):
     y_physical = (y_camera - (camera_resolution_y / 2)) * scale_y
     return x_physical, y_physical
 
-# def inverse_kinematics_5dof(x_target, y_target, z_target):
-#     angles = [0] * 6  # Sudut-sudut untuk stepper dan semua servo
-
-#     # Hitung rotasi base (stepper motor)
-#     θ1 = np.arctan2(y_target, x_target)
-#     θ1_deg = np.degrees(θ1)
-#     angles[0] = np.clip(θ1_deg, -360, 360)  # Batas rotasi stepper
-
-#     # Hitung jarak horizontal dan vertikal
-#     r = max(np.sqrt(x_target**2 + y_target**2) - L1, 0.1)  # Jarak horizontal
-#     z = z_target - base_thickness  # Tinggi target relatif terhadap base
-
-#     # Periksa apakah target berada dalam jangkauan
-#     d = np.sqrt(r**2 + z**2)  # Jarak dari base ke target
-#     if d > (L2 + L3 + L4):  
-#         raise ValueError("Target berada di luar jangkauan lengan robot.")
-
-#     # Sudut antara r dan z
-#     θ_base = np.arctan2(z, r)
-
-#     # Sudut lower arm (Servo1 dan Servo1b)
-#     cos_θ2 = (L2**2 + d**2 - L3**2) / (2 * L2 * d)
-#     θ2 = θ_base + np.arccos(np.clip(cos_θ2, -1, 1))
-#     θ2_deg = np.degrees(θ2)
-#     angles[1] = np.clip(θ2_deg, 10, 170)  # Hindari sudut ekstrem
-#     angles[2] = np.clip(180 - θ2_deg, 10, 170)  # Servo1b simetris
-
-#     # Sudut center arm (Servo2)
-#     cos_θ3 = (L2**2 + L3**2 - d**2) / (2 * L2 * L3)
-#     θ3 = np.arccos(np.clip(cos_θ3, -1, 1))
-#     θ3_deg = 180 - np.degrees(θ3)
-#     angles[3] = np.clip(θ3_deg, 10, 170)
-
-#     # Sudut neck (Servo4)
-#     angles[4] = 60  # Default untuk neck
-
-#     # Sudut gripper (Servo5)
-#     angles[5] = 60  # Default gripper
-
-#     return angles
-
-# def inverse_kinematics_5dof(x_target, y_target, z_target):
-#     angles = [0] * 6  # Sudut-sudut untuk stepper dan semua servo
-
-#     # Hitung rotasi base (stepper motor)
-#     θ1 = np.arctan2(y_target, x_target)
-#     θ1_deg = np.degrees(θ1)
-#     angles[0] = np.clip(θ1_deg, -360, 360)  # Batas rotasi stepper
-
-#     # Hitung jarak horizontal dan vertikal
-#     r = max(np.sqrt(x_target**2 + y_target**2) - L1, 0.1)  # Jarak horizontal
-#     z = z_target - base_thickness  # Tinggi target relatif terhadap base
-
-#     # Periksa apakah target berada dalam jangkauan
-#     d = np.sqrt(r**2 + z**2)  # Jarak dari base ke target
-#     if d > (L2 + L3 + L4):  
-#         raise ValueError("Target berada di luar jangkauan lengan robot.")
-
-#     # Sudut antara r dan z
-#     θ_base = np.arctan2(z, r)
-
-#     # Sudut lower arm (Servo1 dan Servo1b)
-#     cos_θ2 = (L2**2 + d**2 - L3**2) / (2 * L2 * d)
-#     θ2 = θ_base + np.arccos(np.clip(cos_θ2, -1, 1))
-#     θ2_deg = np.degrees(θ2)
-#     angles[1] = np.clip(θ2_deg, 10, 170)  # Hindari sudut ekstrem
-#     angles[2] = np.clip(180 - θ2_deg, 10, 170)  # Servo1b simetris
-
-#     # Sudut center arm (Servo2)
-#     cos_θ3 = (L2**2 + L3**2 - d**2) / (2 * L2 * L3)
-#     θ3 = np.arccos(np.clip(cos_θ3, -1, 1))
-#     θ3_deg = 180 - np.degrees(θ3)
-#     angles[3] = np.clip(θ3_deg, 10, 170)
-
-#     # Sudut tambahan untuk neck dan gripper
-#     # Modifikasi manual untuk mencocokkan target sudut yang diminta
-#     if np.isclose(x_target, -6.50) and np.isclose(y_target, 4.50) and np.isclose(z_target, 0.00):
-#         angles = [0, 59, 20, 3, 67, 61]
-#     else:
-#         # Sudut neck (Servo4)
-#         angles[4] = 67  # Default untuk neck
-
-#         # Sudut gripper (Servo5)
-#         angles[5] = 61  # Default gripper
-
-#     return angles
-
-# def inverse_kinematics_5dof(x_target, y_target, z_target):
-#     angles = [0] * 6  # Sudut-sudut untuk stepper dan semua servo
-
-#     # Hitung rotasi base (stepper motor)
-#     θ1 = np.arctan2(y_target, x_target)
-#     θ1_deg = np.degrees(θ1)
-#     angles[0] = np.clip(θ1_deg, -360, 360)  # Batas rotasi stepper
-
-#     # Hitung jarak horizontal dan vertikal
-#     r = max(np.sqrt(x_target**2 + y_target**2) - L1, 0.1)  # Jarak horizontal
-#     z = z_target - base_thickness  # Tinggi target relatif terhadap base
-
-#     # Periksa apakah target berada dalam jangkauan
-#     d = np.sqrt(r**2 + z**2)  # Jarak dari base ke target
-#     if d > (L2 + L3 + L4):  
-#         raise ValueError("Target berada di luar jangkauan lengan robot.")
-
-#     # Sudut antara r dan z
-#     θ_base = np.arctan2(z, r)
-
-#     # Sudut lower arm (Servo1 dan Servo1b)
-#     cos_θ2 = np.clip((L2**2 + d**2 - L3**2) / (2 * L2 * d), -1, 1)
-#     θ2 = θ_base + np.arccos(cos_θ2)
-#     θ2_deg = np.degrees(θ2)
-#     angles[1] = np.clip(θ2_deg, 10, 170)  # Hindari sudut ekstrem
-#     angles[2] = np.clip(180 - θ2_deg, 10, 170)  # Servo1b simetris
-
-#     # Sudut center arm (Servo2)
-#     cos_θ3 = np.clip((L2**2 + L3**2 - d**2) / (2 * L2 * L3), -1, 1)
-#     θ3 = np.arccos(cos_θ3)
-#     θ3_deg = 180 - np.degrees(θ3)
-#     angles[3] = np.clip(θ3_deg, 10, 170)
-
-#     # Sudut neck (Servo4)
-#     θ4 = 90 - (θ2_deg + θ3_deg)  # Sudut leher disesuaikan untuk mencocokkan orientasi target
-#     angles[4] = np.clip(θ4, 10, 170)
-
-#     # Sudut gripper (Servo5)
-#     angles[5] = 90  # Default gripper terbuka sedang
-
-#     return angles
-
 # Fungsi Inverse Kinematics untuk 5 DOF
 def inverse_kinematics_5dof(x_target, y_target, z_target):
     def objective_function(angles):
@@ -189,22 +60,48 @@ def inverse_kinematics_5dof(x_target, y_target, z_target):
         return min(pos[2] for pos in positions)
 
     # Inisialisasi awal untuk sudut
-    def generate_initial_guess():
-        return [
-            np.random.uniform(0, 2 * np.pi),   # Base
-            np.random.uniform(0, np.pi),       # Lower arm
-            np.random.uniform(0, np.pi),       # Center arm
-            np.random.uniform(0, np.pi),       # Upper arm
-            np.random.uniform(0, L5)           # Gripper (linear)
-        ]
+    # def generate_initial_guess():
+    #     return [
+    #         np.random.uniform(0, 2 * np.pi),   # Base
+    #         np.random.uniform(0, np.pi),       # Lower arm
+    #         np.random.uniform(0, np.pi),       # Center arm
+    #         np.random.uniform(0, np.pi),       # Upper arm
+    #         np.random.uniform(0, L5)           # Gripper (linear)
+    #     ]
+    
+    # def generate_initial_guess():
+    #     return [np.pi / 2, np.pi / 4, np.pi / 4, np.pi / 4, L5 / 2]  # Contoh nilai tetap
+    
+    # def generate_initial_guess():
+    #     return [0, np.pi/4, np.pi/4, np.pi/4, 0]  # Sudut awal dalam radian
 
+    # def generate_initial_guess():
+    #     return [np.pi / 4] * 4 + [L5 / 2]
+    
+    def generate_initial_guess():
+        θ1 = np.pi / 6 + np.random.uniform(-np.pi/12, np.pi/12)
+        θ2 = np.pi / 6 + np.random.uniform(-np.pi/12, np.pi/12)
+        θ3 = np.pi / 8 + np.random.uniform(-np.pi/16, np.pi/16)
+        θ4 = np.pi / 8 + np.random.uniform(-np.pi/16, np.pi/16)
+        θ5 = L5 / 2 + np.random.uniform(-1, 1)
+        return [θ1, θ2, θ3, θ4, θ5]
+
+    # bounds = [
+    #     (0, 2 * np.pi),  # Base
+    #     (0, np.pi),      # Lower arm
+    #     (0, np.pi),      # Center arm
+    #     (0, np.pi),      # Upper arm
+    #     (0, L5)          # Gripper
+    # ]
+    
     bounds = [
-        (0, 2 * np.pi),  # Base
-        (0, np.pi),      # Lower arm
-        (0, np.pi),      # Center arm
-        (0, np.pi),      # Upper arm
-        (0, L5)          # Gripper (linear, L5)
+        (-np.pi, np.pi),  # Base
+        (0, np.pi),       # Lower arm
+        (0, np.pi),       # Center arm
+        (0, np.pi),       # Upper arm
+        (0, L5)           # Gripper
     ]
+
 
     # Optimasi untuk mendapatkan sudut terbaik
     best_result = None
@@ -359,9 +256,20 @@ def main():
                 print(f"Deteksi Berhasil: {cube_color} Cube di Koordinat ({x_target:.2f}, {y_target:.2f}, {z_target:.2f})")
 
                 try:
+                    # angles = inverse_kinematics_5dof(x_target, y_target, z_target)
                     angles = inverse_kinematics_5dof(x_target, y_target, z_target)
-                    angles = [int(angle) for angle in angles]
-                    x_end, y_end, z_end = forward_kinematics(angles)
+
+                    # Menambahkan 10 derajat (sekitar 0.1745 radian) ke sudut θ2
+                    angles[1] + np.radians(5000)  # θ2 ada di indeks 1
+
+                    # # Pastikan θ2 tetap berada dalam batasan yang sesuai
+                    # if angles[1] > np.pi:
+                    #     angles[1] = np.pi
+                    # elif angles[1] < 0:
+                    #     angles[1] = 0
+
+                    # angles = [int(angle) for angle in angles]
+                    x_end, y_end, z_end = forward_kinematics(angles)[-1]
 
                     error_x = abs(x_target - x_end)
                     error_y = abs(y_target - y_end)
