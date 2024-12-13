@@ -1,0 +1,19 @@
+Arduino IDE:
+
+WiFi
+ESP32Servo
+WebServer
+AccelStepper
+WebSocketHandler
+cmath
+ArduinoJson
+WebSocketHandler
+WebSocketsServer
+
+Python:
+
+OpenCV
+Numpy
+scipy.optimize
+WebSocket
+time
