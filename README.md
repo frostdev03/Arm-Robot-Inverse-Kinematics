@@ -1,25 +1,26 @@
-# Arm Robot with Inverse Kinematics
+# Arm Robot with Inverse Kinematics (5 DoF)
 
 This repository showcases a robotic arm project controlled by an ESP-32 microcontroller using Inverse Kinematics. The robotic arm is designed to perform precise movements, enabling tasks such as object manipulation in a defined workspace. It incorporates advanced algorithms for movement control and real-time adjustments.
 
 ## Features
 
+- **Manual Control:** For controling robot manually.
 - **Inverse Kinematics:** For precise control of the robot's arm positions.
 - **ESP-32 Integration:** Provides wireless connectivity and control.
 - **Object Detection:** Integration with cameras for identifying target objects.
 
 ## Hardware Requirements
 
-- ESP-32 microcontroller
+- ESP-32 Devkit V1 microcontroller
+- ESP-32 CAM Ai Thinker or any camera module 
 - Servos and stepper motors
 - Power supply (suitable for servo operation)
-- Camera for object detection
 
 ## Software Requirements
 
 - Arduino IDE
-- Necessary Arduino libraries (see `libraries/` directory or source files)
-- Python (for simulations, if included)
+- Necessary Arduino libraries (see `libraries,txt` or source files)
+- Python
 
 ## Setup
 
@@ -27,6 +28,8 @@ This repository showcases a robotic arm project controlled by an ESP-32 microcon
 2. **Software Installation:**
    - Upload the code to the ESP-32 using Arduino IDE.
    - Install required Python packages if simulations are used.
+   - Connect and access the camera (automation).
+   - Control manually in browser using websocket (just write the ESP32 IP address in ur browser).
 3. **Run the System:** Power on the ESP-32 and control the arm using the provided control mechanisms.
 
 ## Main Program
