@@ -1,5 +1,6 @@
 # Arm Robot with Inverse Kinematics (5 DoF)
 
+
 This repository showcases a robotic arm project controlled by an ESP-32 microcontroller using Inverse Kinematics. The robotic arm is designed to perform precise movements, enabling tasks such as object manipulation in a defined workspace. It incorporates advanced algorithms for movement control and real-time adjustments.
 
 ## Features
